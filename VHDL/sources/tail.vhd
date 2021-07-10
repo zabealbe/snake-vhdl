@@ -1,44 +1,43 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-package test_package is
-    type SHIFT_REG is array (0 to 16-1) of unsigned(17 DOWNTO 0);
-    signal mem_x, mem_y: SHIFT_REG := (others => (others => '0'));
-end package;
+use work.world_pkg.all;
 
-library ieee;
-use ieee.std_logic_1164.all;
-use work.test_package.all;
-use ieee.numeric_std.all;
+-- Tail module
+-- works as a fifo keeping track of in_pos
+--
+--   shift  -> shift = '0' the fifo consuming last position
+--             shift = '1' -> freezes the output position
+--   rst    -> reset pin
+--             in architecture WIthFIFO the rst signal needs to be followed by a
+--             pause of 3 clock cycles where shift and load remain 0
+
 entity tail is
     generic (
         memory_size: integer := 16
     );
     port(
-        shift: in std_logic;
-        inx, iny: in unsigned(17 DOWNTO 0);
+        shift, load: in std_logic;
+        in_pos: in pos;
         clk, rst: in std_logic;
         
-        outx, outy: out unsigned(17 DOWNTO 0);
-        empty: out std_logic := '0';
+        out_pos: out pos;
+        empty: out std_logic := '1';
         full: out std_logic := '0'
     );
 end tail;
 
 architecture Behavioral of tail is
-    type SHIFT_REG is array (0 to 16-1) of unsigned(17 DOWNTO 0);
-    signal mem_x, mem_y: SHIFT_REG := (others => (others => '0'));
-    signal load: std_logic := '1';
+    type SHIFT_REG is array (0 to memory_size-1) of pos;
+    signal mem: SHIFT_REG := (others => zero_pos);
 begin
-    outx <= mem_x(0);
-    outy <= mem_y(0);
+    out_pos <= mem(0);
     process (clk) is
         variable size: integer := 0;
     begin
         if rising_edge(clk) then
             if shift = '1' then -- TODO: check FIFO not empty
-                mem_x <= mem_x(1 to memory_size-1) & "000000000000000000";
-                mem_y <= mem_y(1 to memory_size-1) & "000000000000000000";
+                mem <= mem(1 to memory_size-1) & zero_pos;
                 if size > 0 then
                     size := size - 1;
                     empty <= '0';
@@ -47,8 +46,7 @@ begin
                 end if;
             end if;
             if load = '1' then -- TODO: check FIFO not full
-                mem_x(size) <= inx;
-                mem_y(size) <= iny;
+                mem(size) <= in_pos;
                 if size < memory_size then
                     size := size + 1;
                     full <= '0';
@@ -61,12 +59,12 @@ begin
 end Behavioral;
 
 architecture WithFIFO of tail is
-    signal load, shift0: std_logic;
+    signal shift0, load0: std_logic;
     signal din, dout: std_logic_vector(35 downto 0);
     component fifo_generator_0
         port (
             clk : IN STD_LOGIC;
-            srst : IN STD_LOGIC;
+            rst : IN STD_LOGIC;
             din : IN STD_LOGIC_VECTOR(35 DOWNTO 0);
             wr_en : IN STD_LOGIC;
             rd_en : IN STD_LOGIC;
@@ -76,20 +74,23 @@ architecture WithFIFO of tail is
         );
     end component;
 begin
+    -- Fifo with data width of 36
+    -- least significant 18 bits represent X
+    -- most  significant 18 bits represent Y
     fifo: fifo_generator_0 
         port map (
             clk => clk,
-            srst => rst,
+            rst => rst,
             rd_en => shift0,
-            wr_en => load,
+            wr_en => load0,
             empty => empty,
             full => full,
             dout => dout,
             din => din
         );
-     load <= not rst;
+     load0 <= load and not rst;
      shift0 <= shift and not rst;
-     outx <= unsigned(dout(17 downto 0));
-     outy <= unsigned(dout(35 downto 18));
-     din <= std_logic_vector(iny) & std_logic_vector(inx);
+     out_pos.x <= unsigned(dout(posx_bits-1 downto 0));
+     out_pos.y <= unsigned(dout(posy_bits+posx_bits-1 downto posx_bits));
+     din <= std_logic_vector(in_pos.y) & std_logic_vector(in_pos.x);
 end WithFIFO;

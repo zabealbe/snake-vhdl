@@ -1,21 +1,27 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
+use work.world_pkg.all;
 
 entity test_head is
 end test_head;
 
 architecture Behavioral of test_head is
     signal u, d, l, r: std_logic := '0';
-    signal currx, curry: unsigned(17 downto 0);
-    signal clk: std_logic := '0';
+    signal curr_pos: pos;
+    signal clk: std_logic;
     signal rst: std_logic := '0';
 begin
     hh: entity work.head 
     generic map (
-        x0 => to_unsigned(1, 18), y0 => to_unsigned(1, 18)
+        bounds => max_box,
+        start_pos => zero_pos
     )
-    port map (u, d, l, r, clk, rst, currx, curry);
+    port map (
+        u => u, d => d, l => l, r => r, 
+        clk => clk, rst => rst, 
+        curr_pos => pos
+    );
     clk <= not clk after 50ns;
     process is
     begin

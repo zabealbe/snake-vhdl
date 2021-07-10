@@ -1,45 +1,61 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
+use work.world_pkg.all;
 
 entity test_tail is
 end test_tail;
 
 architecture Behavioral of test_tail is
-    signal load, shift, empty, full, clk: std_logic := '0';
-    signal inx, iny: unsigned(17 DOWNTO 0) := to_unsigned(11, 18);
-    signal outx, outy: unsigned(17 DOWNTO 0);
+    constant clock_period: time := 50ns;
+    signal shift, load, empty, full, clk, rst: std_logic := '0';
+    signal in_pos: pos := 
+        (x => to_unsigned(2, posx_bits),
+         y => to_unsigned(2, posx_bits));
+    signal out_pos: pos;
 begin
-    hh: entity work.tail
+    hh: entity work.tail(WithFIFO)
         port map (
-            shift=>shift, 
-            rst=>'0',
-            inx=>inx, iny=>iny, 
-            clk=>clk, 
-            outx => outx,
-            outy=>outy, 
-            empty=>empty,
-            full=>full
+            shift => shift,
+            load => load,
+            rst => rst,
+            in_pos => in_pos,
+            clk => clk, 
+            out_pos => out_pos,
+            empty => empty,
+            full => full
         );
-    clk <= not clk after 50ns;
-    inx <= inx + 1 after 100ns;
-    iny <= iny - 1 after 100ns;
+    clk <= not clk after clock_period/2;
+    process (clk) is
+        variable count: integer := 0;
+    begin
+        count := count + 1;
+        if count < 7 then
+            count := count + 1;
+        else
+            if (rising_edge(clk)) then
+                in_pos <= (x => in_pos.x + 1, y => in_pos.y + 3);
+            end if;
+        end if;
+    end process;
     process is
     begin
-        wait for 100ns;
-        shift <= '1';
-        wait for 100ns;
-        shift <= '0';
-        wait for 100ns;
+        rst <= '1';
+        wait for clock_period;
+        rst <= '0';
+        wait for 500ns;
         shift <= '1';
         load <= '1';
         wait for 100ns;
-        shift <= '0';
-        load <= '1';
+        --shift <= '0';
         wait for 100ns;
-        load <= '0';
         shift <= '1';
         wait for 100ns;
+        --shift <= '0';
+        wait for 100ns;
+        shift <= '1';
+        wait for 100ns;
+        rst <= '1';
         wait;
     end process;
 end Behavioral;

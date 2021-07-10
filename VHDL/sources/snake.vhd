@@ -1,33 +1,34 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use work.world_pkg.all;
 
 entity snake is
     generic (
-        x0, y0: unsigned(17 DOWNTO 0) := (others => '0');
+        start_pos: pos := zero_pos;
         max_length: integer := 16
     );
     port(
         grow: in std_logic;
         rst, clk: in std_logic;
         u, d, l, r: in std_logic;
-        headx, heady: out unsigned(17 DOWNTO 0);
-        tailx, taily: out unsigned(17 DOWNTO 0)
+        head_pos: out pos;
+        tail_pos: out pos
     );
 end snake;
 
 architecture Behavioral of snake is
     signal clk10HZ: std_logic := '0';
-    signal bindx, bindy: unsigned(17 DOWNTO 0);
-    signal shift: std_logic;
+    signal bind: pos;
+    signal shift, load: std_logic;
 begin
     head: entity work.head(Behavioral)
         generic map (
-            x0 => x0, y0 => y0
+            start_pos => zero_pos
         )
         port map (
             u => u, d => d, l => l, r => r,
-            currx => bindx, curry => bindy,
+            curr_pos => bind,
             clk => CLK, rst => rst
         );
     tail: entity work.tail(WithFIFO)
@@ -36,20 +37,12 @@ begin
         )
         port map (
             shift => shift,
-            inx => bindx, iny => bindy,
-            outx => tailx, outy => taily,
+            load => load,
+            in_pos => bind,
+            out_pos => tail_pos,
             clk => clk, rst => rst
         );
-    process (clk) is
-        variable count: integer := 0;
-    begin
-        count := count + 1;
-        if count = 100000 then
-            clk10HZ <= not clk10HZ;
-            count := 0;
-        end if;
-    end process;
-    headx <= bindx;
-    heady <= bindy;
+    load <= '1';
+    head_pos <= bind;
     shift <= not grow;
 end Behavioral;

@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use work.test_package.all;
 use ieee.numeric_std.all;
+use work.world_pkg.all;
 
 entity eden is
     port(
@@ -17,14 +17,35 @@ end eden;
 architecture Behavioral of eden is
     signal nrst: std_logic;
     signal u, d, l, r: std_logic;
-    signal tailx, taily, headx, heady: unsigned(17 DOWNTO 0);
+    signal head_pos, tail_pos: pos;
     signal display_value : std_logic_vector( 31 downto 0 ) := (others => '0');
+    
+    -- World
+    signal add_pos, del_pos: pos;
+    signal wr_en, rd_en: std_logic;
+    signal btype_in, btype_out: btype;
 begin
+    world: entity work.world
+        port map (
+            -- Write side
+            wr_en => wr_en,
+            in_pos => add_pos,
+            btype_in => btype_in,
+            
+            -- Read side
+            rd_en => rd_en,
+            out_pos => del_pos,
+            btype_out => btype_out,
+            
+            clk => clk,
+            rst => rst
+        );
+        
     snake: entity work.snake
         port map (
             u => u, d => d, l => l, r => r,
-            headx => headx, heady => heady,
-            tailx => tailx, taily => taily,
+            head_pos => head_pos,
+            tail_pos => tail_pos,
             grow => SW(15),
             clk => CLK,
             rst => nrst
@@ -84,11 +105,17 @@ begin
         );
     nrst <= not RST;
     LED <= SW;
-    display_value(17 downto 0) <=
-        std_logic_vector(headx) when SW(4 downto 0) = "00001" else
-        std_logic_vector(heady) when SW(4 downto 0) = "00010" else
-        std_logic_vector(tailx) when SW(4 downto 0) = "00100" else
-        std_logic_vector(taily) when SW(4 downto 0) = "01000" else
-        "00" & SW when SW(4 downto 0) = "1----" else
-        (others => '0');
+    process (clk) is
+        variable apples: integer := 15;
+    begin
+        if apples /= 0 then
+            -- Fill world
+            apples := apples - 1;
+            -- get random pos
+            -- add new apple
+        else
+            -- Connect head_pos to add_pos
+            head_pos <= add_pos;
+        end if;
+    end process;
 end Behavioral;

@@ -47,11 +47,20 @@ package world_pkg is
     constant max_box: box := (tl => min_pos, br => max_pos);
 end package;
 
+-- World module
+-- keeps the current state of the tile grid
+--   rst  -> reset pin (active-hight)
+--           put reset to '1' for at least 1 clock cycle before
+--           using this module
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.world_pkg.all;
 entity world is
+    generic (
+        border: box := max_box
+    );
     port (
         in_pos: pos;
         out_pos: pos;

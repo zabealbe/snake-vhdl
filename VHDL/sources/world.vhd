@@ -4,12 +4,12 @@ use ieee.numeric_std.all;
 
 package world_pkg is
     -- Number of bits representing x
-    constant posx_bits: integer := 18;
+    constant posx_bits: integer := 4;
     -- Representation of x coordinate
     subtype posx is unsigned(posx_bits-1 downto 0);
     
     -- Number of bits representing y
-    constant posy_bits: integer := 18;
+    constant posy_bits: integer := 4;
     -- Representation of y coordinate
     subtype posy is unsigned(posy_bits-1 downto 0);
     
@@ -26,8 +26,10 @@ package world_pkg is
     end record;
     
     -- Block type
-    type btype is (empty, snake, apple);
-    
+    subtype btype is std_logic_vector(3 downto 0);
+    constant empty: btype := "0000";
+    constant snake: btype := "0001";
+    constant apple: btype := "0010";
     
     -- Constants --
 
@@ -74,8 +76,8 @@ entity world is
 end world;
 
 architecture Behavioral of world is
-        type REGW is array (0 to 9) of btype;
-        type REG is array (0 to 9) of REGW;
+        type REGW is array (0 to to_integer(max_y)) of btype;
+        type REG is array (0 to to_integer(max_x)) of REGW;
         signal memory: REG;
     begin
     process (clk) is
@@ -83,20 +85,49 @@ architecture Behavioral of world is
         if rst = '1' then
             memory <= (others => (others => empty));
         else
-            -- Modify a block in the world
-            if wr_en = '1' then
-                memory
-                    (to_integer(in_pos.x))
-                    (to_integer(in_pos.y))
-                    <= btype_in;
-            end if;
-            -- Read   a block in the world
-            if rd_en = '1' then
-                btype_out <= memory
-                    (to_integer(out_pos.x))
-                    (to_integer(out_pos.y))
-                    ;
+            if rising_edge(clk) then
+                -- Change a block in the world
+                if wr_en = '1' then
+                    memory
+                        (to_integer(in_pos.x))
+                        (to_integer(in_pos.y))
+                        <= btype_in;
+                end if;
+                -- Read   a block in the world
+                if rd_en = '1' then
+                    btype_out <= memory
+                        (to_integer(out_pos.x))
+                        (to_integer(out_pos.y))
+                        ;
+                end if;
             end if;
         end if;
     end process;
 end Behavioral;
+
+architecture IP of world is
+    component dist_mem_gen_0
+        port (
+            a : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
+            d : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+            clk : IN STD_LOGIC;
+            we : IN STD_LOGIC;
+            spo : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)
+        );
+    end component;
+    signal a: std_logic_vector(5 downto 0);
+    signal d, spo: std_logic_vector(3 downto 0);
+    signal we: std_logic;
+    begin
+    fifo: dist_mem_gen_0
+        port map(
+            a => a,
+            d => d,
+            clk => clk,
+            we => we,
+            spo => spo
+        );
+    we <= wr_en;
+    d <= btype_in;
+    btype_out <= spo;
+end IP;

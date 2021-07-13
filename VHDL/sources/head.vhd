@@ -10,22 +10,22 @@ use work.world_pkg.all;
 entity head is
     generic (
         -- Bounding box
-        bounds: box := max_box;
+        bounds: t_box := max_box;
         -- Start position of the head
-        start_pos: pos := zero_pos
+        start_pos: t_pos := zero_pos
     );
     port(
         u, d, l, r: in std_logic;
         clk, rst: in std_logic;
         
-        curr_pos: out pos := start_pos
+        curr_pos: out t_pos := start_pos
     );
 end entity;
 
 architecture Behavioral of head is
 begin
     process (clk, rst) is
-        variable pos: pos := start_pos;
+        variable pos: t_pos := start_pos;
     begin
         if rst = '1' then
             pos := start_pos;

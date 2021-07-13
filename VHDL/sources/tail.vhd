@@ -18,17 +18,17 @@ entity tail is
     );
     port(
         shift, load: in std_logic;
-        in_pos: in pos;
+        in_pos: in t_pos;
         clk, rst: in std_logic;
         
-        out_pos: out pos;
+        out_pos: out t_pos;
         empty: out std_logic := '1';
         full: out std_logic := '0'
     );
 end tail;
 
 architecture Behavioral of tail is
-    type SHIFT_REG is array (0 to memory_size-1) of pos;
+    type SHIFT_REG is array (0 to memory_size-1) of t_pos;
     signal mem: SHIFT_REG := (others => zero_pos);
 begin
     out_pos <= mem(0);
@@ -92,5 +92,5 @@ begin
      shift0 <= shift and not rst;
      out_pos.x <= unsigned(dout(posx_bits-1 downto 0));
      out_pos.y <= unsigned(dout(posy_bits+posx_bits-1 downto posx_bits));
-     din <= std_logic_vector(in_pos.y) & std_logic_vector(in_pos.x);
+     din(posx_bits+posy_bits-1 downto 0) <= std_logic_vector(in_pos.y) & std_logic_vector(in_pos.x);
 end WithFIFO;

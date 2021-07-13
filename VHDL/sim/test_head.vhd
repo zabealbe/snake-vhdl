@@ -8,7 +8,7 @@ end test_head;
 
 architecture Behavioral of test_head is
     signal u, d, l, r: std_logic := '0';
-    signal curr_pos: pos;
+    signal curr_pos: t_pos;
     signal clk: std_logic;
     signal rst: std_logic := '0';
 begin
@@ -20,7 +20,7 @@ begin
     port map (
         u => u, d => d, l => l, r => r, 
         clk => clk, rst => rst, 
-        curr_pos => pos
+        curr_pos => curr_pos
     );
     clk <= not clk after 50ns;
     process is

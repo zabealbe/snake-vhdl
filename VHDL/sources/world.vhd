@@ -2,56 +2,57 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+-- World package
+-- definitions and macros for a up to 2D coordinate system
+
 package world_pkg is
-    -- Number of bits representing x
-    constant posx_bits: integer := 4;
     -- Representation of x coordinate
-    subtype posx is unsigned(posx_bits-1 downto 0);
+    constant posx_bits: integer := 4; -- n of bits
+    subtype t_posx is unsigned(posx_bits-1 downto 0);
     
-    -- Number of bits representing y
-    constant posy_bits: integer := 4;
     -- Representation of y coordinate
-    subtype posy is unsigned(posy_bits-1 downto 0);
+    constant posy_bits: integer := 4; -- n of bits
+    subtype t_posy is unsigned(posy_bits-1 downto 0);
     
     -- 2D position defined by two coordinates
-    type pos is record
-        x: posx;
-        y: posy;
+    type t_pos is record
+        x: t_posx;
+        y: t_posy;
     end record;
     
     -- Box defined by TOP LEFT (tl) and BOTTOM RIGHT (br) corners
-    type box is record
-        tl: pos; -- Top Left
-        br: pos; -- Bottom Right
+    type t_box is record
+        tl: t_pos; -- Top Left
+        br: t_pos; -- Bottom Right
     end record;
     
     -- Block type
-    subtype btype is std_logic_vector(3 downto 0);
-    constant empty: btype := "0000";
-    constant snake: btype := "0001";
-    constant apple: btype := "0010";
+    subtype t_btype is std_logic_vector(3 downto 0);
+    constant empty: t_btype := "0000";
+    constant snake: t_btype := "0001";
+    constant apple: t_btype := "0010";
     
-    -- Constants --
+    -- Useful macros --
 
     -- Smallest representable coordinates
-    constant min_x: posx := (others => '0');
-    constant min_y: posy := (others => '0');
-    constant min_pos: pos := (x => min_x, y => min_y);
+    constant min_x: t_posx := (others => '0');
+    constant min_y: t_posy := (others => '0');
+    constant min_pos: t_pos := (x => min_x, y => min_y);
     -- Biggest  representable coordinates
-    constant max_x: posx := (others => '1');
-    constant max_y: posy := (others => '1');
-    constant max_pos: pos := (x => max_x, y => max_y);
+    constant max_x: t_posx := (others => '1');
+    constant max_y: t_posy := (others => '1');
+    constant max_pos: t_pos := (x => max_x, y => max_y);
     -- Coordinates of origin
-    constant zero_x: posx := (others => '0');
-    constant zero_y: posy := (others => '0');
-    constant zero_pos: pos := (x => zero_x, y => zero_y);
+    constant zero_x: t_posx := (others => '0');
+    constant zero_y: t_posy := (others => '0');
+    constant zero_pos: t_pos := (x => zero_x, y => zero_y);
     -- Biggest representable box
-    constant max_box: box := (tl => min_pos, br => max_pos);
+    constant max_box: t_box := (tl => min_pos, br => max_pos);
 end package;
 
 -- World module
--- keeps the current state of the tile grid
---   rst  -> reset pin (active-hight)
+-- holds the current state of the tile grid
+--   rst  -> asyncronous reset pin (active-hight)
 --           put reset to '1' for at least 1 clock cycle before
 --           using this module
 
@@ -61,45 +62,43 @@ use ieee.numeric_std.all;
 use work.world_pkg.all;
 entity world is
     generic (
-        border: box := max_box
+        border: t_box := max_box
     );
     port (
-        in_pos: pos;
-        out_pos: pos;
+        in_pos: t_pos;
+        out_pos: t_pos;
         wr_en, rd_en: in std_logic;
         
-        btype_in: in btype;
-        btype_out: out btype;
+        btype_in: in t_btype;
+        btype_out: out t_btype;
         
         clk, rst: in std_logic
     );
 end world;
 
 architecture Behavioral of world is
-        type REGW is array (0 to to_integer(max_y)) of btype;
+        type REGW is array (0 to to_integer(max_y)) of t_btype;
         type REG is array (0 to to_integer(max_x)) of REGW;
         signal memory: REG;
     begin
-    process (clk) is
+    process (clk, rst) is
     begin
         if rst = '1' then
             memory <= (others => (others => empty));
-        else
-            if rising_edge(clk) then
-                -- Change a block in the world
-                if wr_en = '1' then
-                    memory
-                        (to_integer(in_pos.x))
-                        (to_integer(in_pos.y))
-                        <= btype_in;
-                end if;
-                -- Read   a block in the world
-                if rd_en = '1' then
-                    btype_out <= memory
-                        (to_integer(out_pos.x))
-                        (to_integer(out_pos.y))
-                        ;
-                end if;
+        elsif rising_edge(clk) then
+            -- Change a block in the world
+            if wr_en = '1' then
+                memory
+                    (to_integer(in_pos.x))
+                    (to_integer(in_pos.y))
+                    <= btype_in;
+            end if;
+            -- Read a block from the world
+            if rd_en = '1' then
+                btype_out <= memory
+                    (to_integer(out_pos.x))
+                    (to_integer(out_pos.y))
+                    ;
             end if;
         end if;
     end process;

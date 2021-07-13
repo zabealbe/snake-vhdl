@@ -8,9 +8,9 @@ end test_world;
 
 architecture Behavioral of test_world is
     signal clk, rst: std_logic := '0';
-    signal add_pos, del_pos: pos := zero_pos;
+    signal add_pos, del_pos: t_pos := zero_pos;
     signal wr_en, rd_en: std_logic := '0';
-    signal btype_in, btype_out: btype := empty;
+    signal btype_in, btype_out: t_btype := empty;
 begin
     world: entity work.world(Behavioral)
         port map (
@@ -29,8 +29,8 @@ begin
         );
     clk <= not clk after 10ns;
     process is
-        variable pos1: pos := (x => to_unsigned(10, posx_bits), y => to_unsigned(10, posy_bits));
-        variable pos2: pos := (x => to_unsigned(10, posx_bits), y => to_unsigned(10, posy_bits));
+        variable pos1: t_pos := (x => to_unsigned(10, posx_bits), y => to_unsigned(10, posy_bits));
+        variable pos2: t_pos := (x => to_unsigned(10, posx_bits), y => to_unsigned(10, posy_bits));
     begin
         -- Reset to initialize
         rst <= '1';

@@ -17,13 +17,13 @@ end eden;
 architecture Behavioral of eden is
     signal nrst: std_logic;
     signal u, d, l, r: std_logic;
-    signal head_pos, tail_pos: pos;
+    signal head_pos, tail_pos: t_pos;
     signal display_value : std_logic_vector( 31 downto 0 ) := (others => '0');
     
     -- World
-    signal add_pos, del_pos: pos;
+    signal add_pos, del_pos: t_pos;
     signal wr_en, rd_en: std_logic;
-    signal btype_in, btype_out: btype;
+    signal btype_in, btype_out: t_btype;
 begin
     world: entity work.world
         port map (

@@ -10,7 +10,7 @@ architecture Behavioral of test_snake is
     signal clk: std_logic := '0';
     signal rst: std_logic := '0';
     signal u, d, l, r: std_logic := '0';
-    signal head_pos, tail_pos: pos;
+    signal head_pos, tail_pos: t_pos;
     signal grow: std_logic := '0'; -- shift 1 -> not grow, shift 0 -> grow
 begin
     snake: entity work.snake

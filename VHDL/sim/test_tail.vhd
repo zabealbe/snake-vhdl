@@ -9,10 +9,10 @@ end test_tail;
 architecture Behavioral of test_tail is
     constant clock_period: time := 50ns;
     signal shift, load, empty, full, clk, rst: std_logic := '0';
-    signal in_pos: pos := 
+    signal in_pos: t_pos := 
         (x => to_unsigned(2, posx_bits),
          y => to_unsigned(2, posx_bits));
-    signal out_pos: pos;
+    signal out_pos: t_pos;
 begin
     hh: entity work.tail(WithFIFO)
         port map (

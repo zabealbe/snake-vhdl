@@ -5,21 +5,21 @@ use work.world_pkg.all;
 
 entity snake is
     generic (
-        start_pos: pos := zero_pos;
+        start_pos: t_pos := zero_pos;
         max_length: integer := 16
     );
     port(
         grow: in std_logic;
         rst, clk: in std_logic;
         u, d, l, r: in std_logic;
-        head_pos: out pos;
-        tail_pos: out pos
+        head_pos: out t_pos;
+        tail_pos: out t_pos
     );
 end snake;
 
 architecture Behavioral of snake is
     signal clk10HZ: std_logic := '0';
-    signal bind: pos;
+    signal bind: t_pos;
     signal shift, load: std_logic;
 begin
     head: entity work.head(Behavioral)

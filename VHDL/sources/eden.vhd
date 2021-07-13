@@ -1,5 +1,5 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.world_pkg.all;
 
@@ -15,26 +15,41 @@ entity eden is
 end eden;
 
 architecture Behavioral of eden is
+    constant clock_speed: integer := 100_000_000;
+    constant g_cpf: integer := clock_speed / 60;  -- Graphics update rate, measured in clock cycles per frame
+    constant p_cpf: integer := g_cpf * 3;         -- Physics  update rate, measured in clock cycles per frame
+    
+    signal g_rst, g_init, g_enable, g_tc: std_logic := '0';
+    signal p_rst, p_init, p_enable, p_tc: std_logic := '0';
+    signal g_count_internal: integer := 0;
+    signal p_count_internal: integer := 0;
+    
     signal nrst: std_logic;
     signal u, d, l, r: std_logic;
     signal head_pos, tail_pos: t_pos;
     signal display_value : std_logic_vector( 31 downto 0 ) := (others => '0');
     
     -- World
-    signal add_pos, del_pos: t_pos;
+    signal get_pos, set_pos: t_pos;
     signal wr_en, rd_en: std_logic;
     signal tile_in, tile_out: t_tile;
+    
+    -- Vga
+    signal tile: t_tile;
+    signal ask_pos: t_pos;
+    signal vga_hs, vga_vs: std_logic;
+    signal vga_r, vga_g, vga_b: std_logic_vector(3 downto 0);
 begin
     world: entity work.world
         port map (
             -- Write side
             wr_en => wr_en,
-            in_pos => add_pos,
+            in_pos => set_pos,
             tile_in => tile_in,
             
             -- Read side
             rd_en => rd_en,
-            out_pos => del_pos,
+            out_pos => get_pos,
             tile_out => tile_out,
             
             clk => clk,
@@ -78,6 +93,33 @@ begin
             bouncy => BTNR,
             pulse => r
         );
+    e_vga_renderer : entity work.vga_renderer(Behavioral) 
+        port map (
+            clk => CLK,
+            tile => tile,
+            pos => ask_pos,
+            vga_hs => vga_hs, vga_vs => vga_vs,
+            vga_r => vga_r, vga_g => vga_g, vga_b => vga_b
+        );
+    
+    g_counter: entity work.counter generic map (max => g_cpf - 1) port map (
+        clk => clk, 
+        rst => g_rst, 
+        init => g_init, 
+        enable => g_enable, 
+        tc => g_tc, 
+        count => g_count_internal
+    );
+
+    p_counter: entity work.counter generic map (max => p_cpf - 1) port map (
+        clk => clk,
+        rst => p_rst,
+        init => p_init,
+        enable => p_enable,
+        tc => p_tc,
+        count => p_count_internal
+    );
+    
     thedriver : entity work.seven_segment_driver(Behavioral) 
         generic map ( 
             size => 21 
@@ -106,16 +148,22 @@ begin
     nrst <= not RST;
     LED <= SW;
     process (clk) is
-        variable apples: integer := 15;
     begin
-        if apples /= 0 then
-            -- Fill world
-            apples := apples - 1;
-            -- get random pos
-            -- add new apple
-        else
-            -- Connect head_pos to add_pos
-            head_pos <= add_pos;
+        if rising_edge(clk) then
+            if (g_tc = '1') then
+                -- Update graphics
+                rd_en <= '1';
+                get_pos <= ask_pos;
+            else
+                rd_en <= '0';
+            end if;
+            if (p_tc = '1') then
+                -- Update physics
+                wr_en <= '1';
+                set_pos <= head_pos;
+            else
+                wr_en <= '0';
+            end if;
         end if;
     end process;
 end Behavioral;

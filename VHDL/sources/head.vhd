@@ -31,18 +31,18 @@ begin
             pos := start_pos;
         elsif rising_edge(clk) then
             if (u xor d) = '1' then
-                if u = '1' and pos.y /= bounds.tl.x then
+                if u = '1' and pos.y /= bounds.tl.y then
                     pos.y := pos.y - 1;
                 end if;
-                if d = '1' and pos.y /= bounds.tl.y then
+                if d = '1' and pos.y /= bounds.br.y then
                     pos.y := pos.y + 1;
                 end if;
             end if;
             if (l xor r) = '1' then
-                if l = '1' and pos.x /= bounds.br.x then
+                if l = '1' and pos.x /= bounds.tl.x then
                     pos.x := pos.x - 1;
                 end if;
-                if r = '1' and pos.x /= bounds.br.y then
+                if r = '1' and pos.x /= bounds.br.x then
                     pos.x := pos.x + 1;
                 end if;
             end if;

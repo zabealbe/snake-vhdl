@@ -9,8 +9,7 @@ end test_head;
 architecture Behavioral of test_head is
     signal u, d, l, r: std_logic := '0';
     signal curr_pos: t_pos;
-    signal clk: std_logic;
-    signal rst: std_logic := '0';
+    signal clk, rst: std_logic := '0';
 begin
     hh: entity work.head 
     generic map (

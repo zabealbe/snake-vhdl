@@ -27,10 +27,11 @@ package world_pkg is
     end record;
     
     -- Block type
-    subtype t_btype is std_logic_vector(3 downto 0);
-    constant empty: t_btype := "0000";
-    constant snake: t_btype := "0001";
-    constant apple: t_btype := "0010";
+    subtype t_tile is std_logic_vector(3 downto 0);
+    constant empty: t_tile := "0000";
+    constant snake: t_tile := "0001";
+    constant apple: t_tile := "0010";
+    constant crate: t_tile := "0011";
     
     -- Useful macros --
 
@@ -69,15 +70,15 @@ entity world is
         out_pos: t_pos;
         wr_en, rd_en: in std_logic;
         
-        btype_in: in t_btype;
-        btype_out: out t_btype;
+        tile_in: in t_tile;
+        tile_out: out t_tile;
         
         clk, rst: in std_logic
     );
 end world;
 
 architecture Behavioral of world is
-        type REGW is array (0 to to_integer(max_y)) of t_btype;
+        type REGW is array (0 to to_integer(max_y)) of t_tile;
         type REG is array (0 to to_integer(max_x)) of REGW;
         signal memory: REG;
     begin
@@ -91,11 +92,11 @@ architecture Behavioral of world is
                 memory
                     (to_integer(in_pos.x))
                     (to_integer(in_pos.y))
-                    <= btype_in;
+                    <= tile_in;
             end if;
             -- Read a block from the world
             if rd_en = '1' then
-                btype_out <= memory
+                tile_out <= memory
                     (to_integer(out_pos.x))
                     (to_integer(out_pos.y))
                     ;
@@ -127,6 +128,6 @@ architecture IP of world is
             spo => spo
         );
     we <= wr_en;
-    d <= btype_in;
-    btype_out <= spo;
+    d <= tile_in;
+    tile_out <= spo;
 end IP;

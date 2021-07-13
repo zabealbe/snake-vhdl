@@ -23,19 +23,19 @@ architecture Behavioral of eden is
     -- World
     signal add_pos, del_pos: t_pos;
     signal wr_en, rd_en: std_logic;
-    signal btype_in, btype_out: t_btype;
+    signal tile_in, tile_out: t_tile;
 begin
     world: entity work.world
         port map (
             -- Write side
             wr_en => wr_en,
             in_pos => add_pos,
-            btype_in => btype_in,
+            tile_in => tile_in,
             
             -- Read side
             rd_en => rd_en,
             out_pos => del_pos,
-            btype_out => btype_out,
+            tile_out => tile_out,
             
             clk => clk,
             rst => rst

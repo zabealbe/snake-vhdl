@@ -18,7 +18,6 @@ entity snake is
 end snake;
 
 architecture Behavioral of snake is
-    signal clk10HZ: std_logic := '0';
     signal bind: t_pos;
     signal shift, load: std_logic;
 begin

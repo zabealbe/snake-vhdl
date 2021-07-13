@@ -29,9 +29,10 @@ package world_pkg is
     -- Block type
     subtype t_tile is std_logic_vector(3 downto 0);
     constant empty: t_tile := "0000";
-    constant snake: t_tile := "0001";
-    constant apple: t_tile := "0010";
-    constant crate: t_tile := "0011";
+    constant grass: t_tile := "0001";
+    constant snake: t_tile := "0010";
+    constant apple: t_tile := "0011";
+    constant crate: t_tile := "0100";
     
     -- Useful macros --
 
@@ -63,7 +64,8 @@ use ieee.numeric_std.all;
 use work.world_pkg.all;
 entity world is
     generic (
-        border: t_box := max_box
+        border: t_box := max_box; -- Border of the world
+        def_tile: t_tile := empty -- Default tile type
     );
     port (
         in_pos: t_pos;
@@ -80,12 +82,12 @@ end world;
 architecture Behavioral of world is
         type REGW is array (0 to to_integer(max_y)) of t_tile;
         type REG is array (0 to to_integer(max_x)) of REGW;
-        signal memory: REG;
+        signal memory: REG := (others => (others => def_tile));
     begin
     process (clk, rst) is
     begin
         if rst = '1' then
-            memory <= (others => (others => empty));
+            memory <= (others => (others => def_tile));
         elsif rising_edge(clk) then
             -- Change a block in the world
             if wr_en = '1' then

@@ -32,7 +32,7 @@ architecture Behavioral of eden is
     -- World
     signal get_pos, set_pos: t_pos;
     signal wr_en, rd_en: std_logic;
-    signal tile_in, tile_out: t_tile;
+    signal set_tile, get_tile: t_tile;
     
     -- Vga
     signal tile: t_tile;
@@ -40,23 +40,23 @@ architecture Behavioral of eden is
     signal vga_hs, vga_vs: std_logic;
     signal vga_r, vga_g, vga_b: std_logic_vector(3 downto 0);
 begin
-    world: entity work.world
+    e_world: entity work.world
         port map (
             -- Write side
             wr_en => wr_en,
             in_pos => set_pos,
-            tile_in => tile_in,
+            tile_in => set_tile,
             
             -- Read side
             rd_en => rd_en,
             out_pos => get_pos,
-            tile_out => tile_out,
+            tile_out => get_tile,
             
             clk => clk,
             rst => rst
         );
         
-    snake: entity work.snake
+    e_snake: entity work.snake
         port map (
             u => u, d => d, l => l, r => r,
             head_pos => head_pos,
@@ -65,28 +65,28 @@ begin
             clk => CLK,
             rst => nrst
         );
-    debouncer_u: entity work.debouncer(Behavioral)
+    e_debouncer_u: entity work.debouncer(Behavioral)
         port map (
             clk => CLK,
             rst => nrst,
             bouncy => BTNU,
             pulse => u
         );
-    debouncer_d: entity work.debouncer(Behavioral)
+    e_debouncer_d: entity work.debouncer(Behavioral)
         port map (
             clk => CLK,
             rst => nrst,
             bouncy => BTND,
             pulse => d
         );
-    debouncer_l: entity work.debouncer(Behavioral)
+    e_debouncer_l: entity work.debouncer(Behavioral)
         port map (
             clk => CLK,
             rst => nrst,
             bouncy => BTNL,
             pulse => l
         );
-    debouncer_r: entity work.debouncer(Behavioral)
+    e_debouncer_r: entity work.debouncer(Behavioral)
         port map (
             clk => CLK,
             rst => nrst,
@@ -102,7 +102,7 @@ begin
             vga_r => vga_r, vga_g => vga_g, vga_b => vga_b
         );
     
-    g_counter: entity work.counter generic map (max => g_cpf - 1) port map (
+    e_g_counter: entity work.counter generic map (max => g_cpf - 1) port map (
         clk => clk, 
         rst => g_rst, 
         init => g_init, 
@@ -111,7 +111,7 @@ begin
         count => g_count_internal
     );
 
-    p_counter: entity work.counter generic map (max => p_cpf - 1) port map (
+    e_p_counter: entity work.counter generic map (max => p_cpf - 1) port map (
         clk => clk,
         rst => p_rst,
         init => p_init,
@@ -120,7 +120,7 @@ begin
         count => p_count_internal
     );
     
-    thedriver : entity work.seven_segment_driver(Behavioral) 
+    e_thedriver : entity work.seven_segment_driver(Behavioral) 
         generic map ( 
             size => 21 
         )
@@ -148,22 +148,40 @@ begin
     nrst <= not RST;
     LED <= SW;
     process (clk) is
+        variable index: unsigned(posy_bits+posx_bits-1 downto 0) := (others => '0');
+        variable curr_pos: t_pos;
     begin
         if rising_edge(clk) then
-            if (g_tc = '1') then
-                -- Update graphics
+            curr_pos := (
+                x => index mod 32,
+                y => index   / 32
+            );
+            
+            if ask_pos = curr_pos then
                 rd_en <= '1';
                 get_pos <= ask_pos;
             else
                 rd_en <= '0';
             end if;
-            if (p_tc = '1') then
-                -- Update physics
+            
+            -- TODO: check pixel position is bottom right of tile
+            if head_pos = curr_pos then
                 wr_en <= '1';
                 set_pos <= head_pos;
+                set_tile <= snake;
             else
                 wr_en <= '0';
             end if;
+            
+            if tail_pos = curr_pos then
+                wr_en <= '1';
+                set_pos <= tail_pos;
+                set_tile <= grass;
+            else
+                wr_en <= '0';
+            end if;
+            
+            index := index + 1;
         end if;
     end process;
 end Behavioral;

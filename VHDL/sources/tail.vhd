@@ -88,8 +88,8 @@ begin
             dout => dout,
             din => din
         );
-     load0 <= load and not rst;
-     shift0 <= shift and not rst;
+     load0 <= load and rst;
+     shift0 <= shift and rst;
      out_pos.x <= unsigned(dout(posx_bits-1 downto 0));
      out_pos.y <= unsigned(dout(posy_bits+posx_bits-1 downto posx_bits));
      din(posx_bits+posy_bits-1 downto 0) <= std_logic_vector(in_pos.y) & std_logic_vector(in_pos.x);

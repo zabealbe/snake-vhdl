@@ -1,56 +1,6 @@
 library ieee;
-use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
--- World package
--- definitions and macros for a up to 2D coordinate system
-
-package world_pkg is
-    -- Representation of x coordinate
-    constant posx_bits: integer := 4; -- n of bits
-    subtype t_posx is unsigned(posx_bits-1 downto 0);
-    
-    -- Representation of y coordinate
-    constant posy_bits: integer := 4; -- n of bits
-    subtype t_posy is unsigned(posy_bits-1 downto 0);
-    
-    -- 2D position defined by two coordinates
-    type t_pos is record
-        x: t_posx;
-        y: t_posy;
-    end record;
-    
-    -- Box defined by TOP LEFT (tl) and BOTTOM RIGHT (br) corners
-    type t_box is record
-        tl: t_pos; -- Top Left
-        br: t_pos; -- Bottom Right
-    end record;
-    
-    -- Block type
-    subtype t_tile is std_logic_vector(3 downto 0);
-    constant empty: t_tile := "0000";
-    constant grass: t_tile := "0001";
-    constant snake: t_tile := "0010";
-    constant apple: t_tile := "0011";
-    constant crate: t_tile := "0100";
-    
-    -- Useful macros --
-
-    -- Smallest representable coordinates
-    constant min_x: t_posx := (others => '0');
-    constant min_y: t_posy := (others => '0');
-    constant min_pos: t_pos := (x => min_x, y => min_y);
-    -- Biggest  representable coordinates
-    constant max_x: t_posx := (others => '1');
-    constant max_y: t_posy := (others => '1');
-    constant max_pos: t_pos := (x => max_x, y => max_y);
-    -- Coordinates of origin
-    constant zero_x: t_posx := (others => '0');
-    constant zero_y: t_posy := (others => '0');
-    constant zero_pos: t_pos := (x => zero_x, y => zero_y);
-    -- Biggest representable box
-    constant max_box: t_box := (tl => min_pos, br => max_pos);
-end package;
+use ieee.std_logic_1164.all;
 
 -- World module
 -- holds the current state of the tile grid
@@ -62,9 +12,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.world_pkg.all;
+
 entity world is
     generic (
-        border: t_box := max_box; -- Border of the world
+        bounds: t_box := max_box; -- Border of the world
         def_tile: t_tile := empty -- Default tile type
     );
     port (
@@ -86,7 +37,7 @@ architecture Behavioral of world is
     begin
     process (clk, rst) is
     begin
-        if rst = '1' then
+        if rst = '0' then
             memory <= (others => (others => def_tile));
         elsif rising_edge(clk) then
             -- Change a block in the world

@@ -3,28 +3,29 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 use IEEE.math_real.all;
+use work.world_pkg.all;
 
 entity vga_controller is
 generic (
     -- values are in pixels
-    h_visible_area: integer;
-    h_front_porch: integer;
-    h_sync_pulse: integer;
-    h_back_porch: integer;
-    h_total: integer;
+    h_visible_area: natural;
+    h_front_porch: natural;
+    h_sync_pulse: natural;
+    h_back_porch: natural;
+    h_total: natural;
     
     -- values are in pixels
-    v_visible_area: integer;
-    v_front_porch: integer;
-    v_sync_pulse: integer;
-    v_back_porch: integer;
-    v_total: integer
+    v_visible_area: natural;
+    v_front_porch: natural;
+    v_sync_pulse: natural;
+    v_back_porch: natural;
+    v_total: natural
 );
 port( 
-    clk: in std_logic;
+    pxl_clk: in std_logic;
     hs, vs: out std_logic;
-    h_count: out integer range 0 to h_total - 1;
-    v_count: out integer range 0 to v_total - 1
+    h_count: out unsigned(11 downto 0) := (others => '0');
+    v_count: out unsigned(11 downto 0) := (others => '0')
 );
 end vga_controller;
 
@@ -35,36 +36,39 @@ architecture Behavioral of vga_controller is
     constant v_pre_sync: integer := v_visible_area + v_front_porch;
     constant v_post_sync: integer := v_visible_area + v_front_porch + v_sync_pulse;
     
-    signal h_count_internal: integer range 0 to h_total - 1 := 0;
-    signal v_count_internal: integer range 0 to v_total - 1 := 0;
+    signal h_count_internal: unsigned(11 downto 0) := (others => '0');
+    signal v_count_internal: unsigned(11 downto 0) := (others => '0');
     
     signal h_rst, h_init, h_enable, h_tc: std_logic := '0';
-    signal v_rst, v_init, v_enable, v_tc: std_logic := '0';
+    signal v_rst, v_init, v_tc: std_logic := '0';
 begin
-    h_enable <= '1';
-    v_enable <= h_tc;
-
-    h_counter: entity work.counter generic map (max => h_total - 1) port map (
-        clk => clk, 
-        rst => h_rst, 
-        init => h_init, 
-        enable => h_enable, 
-        tc => h_tc, 
-        count => h_count_internal
-    );
-
-    v_counter: entity work.counter generic map (max => v_total - 1) port map (
-        clk => clk,
-        rst => v_rst,
-        init => v_init,
-        enable => v_enable,
-        tc => v_tc,
-        count => v_count_internal
-    );
-
     h_count <= h_count_internal;
     v_count <= v_count_internal;
     
-    hs <= '0' when h_count_internal >= h_pre_sync and h_count_internal < h_post_sync else '1';
-    vs <= '0' when v_count_internal >= v_pre_sync and v_count_internal < v_post_sync else '1';
+    hs <= '1' when h_count_internal >= h_pre_sync and h_count_internal < h_post_sync else '0';
+    vs <= '1' when v_count_internal >= v_pre_sync and v_count_internal < v_post_sync else '0';
+    
+    -- Horizontal counter
+    process (pxl_clk)
+    begin
+    if (rising_edge(pxl_clk)) then
+        if (h_count_internal = (h_total - 1)) then
+            h_count_internal <= (others =>'0');
+        else
+            h_count_internal <= h_count_internal + 1;
+        end if;
+    end if;
+    end process;
+    
+    -- Vertical counter
+    process (pxl_clk)
+    begin
+    if (rising_edge(pxl_clk)) then
+      if ((h_count_internal = (h_total - 1)) and (v_count_internal = (v_total - 1))) then
+        v_count_internal <= (others =>'0');
+      elsif (h_count_internal = (h_total - 1)) then
+        v_count_internal <= v_count_internal + 1;
+      end if;
+    end if;
+    end process;
 end Behavioral;

@@ -27,7 +27,7 @@ architecture Behavioral of debouncer is
 begin
 
   process (clk, rst) begin
-  if rst = '1' then
+  if rst = '0' then -- active low
       counter <= ( others => '1' );
       candidate_value <= '0';
       stable_value <= '0';
@@ -52,7 +52,7 @@ begin
 
   -- Create a delayed version of the stable signal
   process (clk, rst) begin
-    if rst = '1' then
+    if rst = '0' then -- active low
         delayed_stable_value <= '0';
     elsif rising_edge(clk) then
         delayed_stable_value <= stable_value;

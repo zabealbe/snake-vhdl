@@ -27,7 +27,7 @@ begin
     process (clk, rst) is
         variable pos: t_pos := start_pos;
     begin
-        if rst = '1' then
+        if rst = '0' then -- active low
             pos := start_pos;
         elsif rising_edge(clk) then
             if (u xor d) = '1' then

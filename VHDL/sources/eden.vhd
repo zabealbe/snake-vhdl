@@ -5,24 +5,26 @@ use work.world_pkg.all;
 
 entity eden is
     port(
-        RST, CLK: in std_logic;
+        CLK, RST: in std_logic;
+        -- Cross buttons
         BTNU, BTND, BTNL, BTNR: in std_logic;
+        -- Switches
         SW: in std_logic_vector( 15 downto 0 );
-        LED: out std_logic_vector( 15 downto 0 );
+        --LED: out std_logic_vector( 15 downto 0 );
+        -- 7 segments display
         CA, CB, CC, CD, CE, CF, CG, DP: out std_logic;
-        AN: out std_logic_vector( 7 downto 0 )
+        AN: out std_logic_vector( 7 downto 0 );
+        -- VGA connector
+        VGA_HS, VGA_VS: out std_logic;
+        VGA_R, VGA_G, VGA_B: out std_logic_vector(3 downto 0)
     );
 end eden;
 
 architecture Behavioral of eden is
-    constant clock_speed: integer := 100_000_000;
-    constant g_cpf: integer := clock_speed / 60;  -- Graphics update rate, measured in clock cycles per frame
-    constant p_cpf: integer := g_cpf * 3;         -- Physics  update rate, measured in clock cycles per frame
-    
-    signal g_rst, g_init, g_enable, g_tc: std_logic := '0';
-    signal p_rst, p_init, p_enable, p_tc: std_logic := '0';
-    signal g_count_internal: integer := 0;
-    signal p_count_internal: integer := 0;
+    constant world_bounds: t_box := (
+        tl => (x => to_unsigned(3, posx_bits),  y => to_unsigned(3, posy_bits)),
+        br => (x => to_unsigned(10, posx_bits),  y => to_unsigned(10, posy_bits))
+    );
     
     signal nrst: std_logic;
     signal u, d, l, r: std_logic;
@@ -30,95 +32,120 @@ architecture Behavioral of eden is
     signal display_value : std_logic_vector( 31 downto 0 ) := (others => '0');
     
     -- World
+    signal world_pos: t_pos;
     signal get_pos, set_pos: t_pos;
-    signal wr_en, rd_en: std_logic;
-    signal set_tile, get_tile: t_tile;
+    signal wr_en: std_logic := '0';
+    signal rd_en: std_logic := '1';
+    signal set_tile_world, get_tile_world: t_tile;
+    
+    -- Graphics
+    signal curr_pos: t_pos;                      -- Current tile pos being draw
+    signal draw_tile: t_tile;
+    
+    signal enable_display_world: std_logic;      -- Trigger signal to enable pixel data from world
+    signal enable_display_background: std_logic; -- Trigger signal to enable pixel data from background
     
     -- Vga
+    signal pxl_clk: std_logic; -- pxl_clk
     signal tile: t_tile;
     signal ask_pos: t_pos;
-    signal vga_hs, vga_vs: std_logic;
-    signal vga_r, vga_g, vga_b: std_logic_vector(3 downto 0);
+    component clk_wiz_0
+        port (
+            clk_in1 : IN STD_LOGIC;
+            clk_100  : OUT STD_LOGIC
+        );
+    end component;
 begin
-    e_world: entity work.world
-        port map (
-            -- Write side
-            wr_en => wr_en,
-            in_pos => set_pos,
-            tile_in => set_tile,
-            
-            -- Read side
-            rd_en => rd_en,
-            out_pos => get_pos,
-            tile_out => get_tile,
-            
-            clk => clk,
-            rst => rst
-        );
-        
-    e_snake: entity work.snake
-        port map (
-            u => u, d => d, l => l, r => r,
-            head_pos => head_pos,
-            tail_pos => tail_pos,
-            grow => SW(15),
-            clk => CLK,
-            rst => nrst
-        );
+    -- Input cleaning
     e_debouncer_u: entity work.debouncer(Behavioral)
         port map (
             clk => CLK,
-            rst => nrst,
+            rst => RST,
             bouncy => BTNU,
             pulse => u
         );
     e_debouncer_d: entity work.debouncer(Behavioral)
         port map (
             clk => CLK,
-            rst => nrst,
+            rst => RST,
             bouncy => BTND,
             pulse => d
         );
     e_debouncer_l: entity work.debouncer(Behavioral)
         port map (
             clk => CLK,
-            rst => nrst,
+            rst => RST,
             bouncy => BTNL,
             pulse => l
         );
     e_debouncer_r: entity work.debouncer(Behavioral)
         port map (
             clk => CLK,
-            rst => nrst,
+            rst => RST,
             bouncy => BTNR,
             pulse => r
         );
-    e_vga_renderer : entity work.vga_renderer(Behavioral) 
+        
+    -- Game logic
+    e_world: entity work.world(Behavioral)
+        generic map (
+            def_tile => apple,
+            bounds => world_bounds
+        )
         port map (
+            -- Write side
+            wr_en => wr_en,
+            in_pos => set_pos,
+            tile_in => set_tile_world,
+            
+            -- Read side
+            rd_en => rd_en,
+            out_pos => get_pos,
+            tile_out => get_tile_world,
+            
             clk => CLK,
-            tile => tile,
-            pos => ask_pos,
-            vga_hs => vga_hs, vga_vs => vga_vs,
-            vga_r => vga_r, vga_g => vga_g, vga_b => vga_b
+            rst => RST
         );
-    
-    e_g_counter: entity work.counter generic map (max => g_cpf - 1) port map (
-        clk => clk, 
-        rst => g_rst, 
-        init => g_init, 
-        enable => g_enable, 
-        tc => g_tc, 
-        count => g_count_internal
-    );
-
-    e_p_counter: entity work.counter generic map (max => p_cpf - 1) port map (
-        clk => clk,
-        rst => p_rst,
-        init => p_init,
-        enable => p_enable,
-        tc => p_tc,
-        count => p_count_internal
-    );
+    e_snake: entity work.snake
+        generic map (
+            start_pos => world_bounds.tl,
+            bounds => world_bounds
+        )
+        port map (
+            u => u, d => d, l => l, r => r,
+            head_pos => head_pos,
+            tail_pos => tail_pos,
+            grow => SW(15),
+            load => SW(14),
+            clk => CLK,
+            rst => RST
+        );
+        
+    -- Graphics
+    e_window_world: entity work.window(Behavioral)
+        generic map (
+            bounds => world_bounds
+        )
+        port map (
+            pos => curr_pos,
+            enable_display => enable_display_world
+        );
+    e_clk_wiz : clk_wiz_0
+        port map (
+            clk_in1 => CLK,
+            clk_100 => pxl_clk
+        );
+    e_vga_renderer : entity work.vga_renderer(Behavioral) 
+        generic map (
+            scale => 4
+        )
+        port map (
+            pxl_clk => pxl_clk,
+            tile => draw_tile,
+            pos => curr_pos,
+            vga_hs => VGA_HS, vga_vs => VGA_VS,
+            vga_r => VGA_R, vga_g => VGA_G, vga_b => VGA_B
+        );
     
     e_thedriver : entity work.seven_segment_driver(Behavioral) 
         generic map ( 
@@ -126,7 +153,7 @@ begin
         )
         port map (
             clk => CLK,
-            rst => nrst,
+            rst => RST,
             digit0 => display_value( 3 downto 0 ),
             digit1 => display_value( 7 downto 4 ),
             digit2 => display_value( 11 downto 8 ),
@@ -145,43 +172,38 @@ begin
             DP     => DP,
             AN     => AN
         );
+        
+    draw_tile <= get_tile_world when enable_display_world = '1' 
+                 else crate;
+    
     nrst <= not RST;
-    LED <= SW;
-    process (clk) is
-        variable index: unsigned(posy_bits+posx_bits-1 downto 0) := (others => '0');
-        variable curr_pos: t_pos;
+    display_value(posx_bits-1 downto 0) <=
+        std_logic_vector(head_pos.x) when SW(4 downto 0) = "00001" else
+        std_logic_vector(head_pos.y) when SW(4 downto 0) = "00010" else
+        std_logic_vector(tail_pos.x) when SW(4 downto 0) = "00100" else
+        std_logic_vector(tail_pos.y) when SW(4 downto 0) = "01000" else
+        (others => '0');
+    process (pxl_clk) is
     begin
-        if rising_edge(clk) then
-            curr_pos := (
-                x => index mod 32,
-                y => index   / 32
-            );
-            
-            if ask_pos = curr_pos then
-                rd_en <= '1';
-                get_pos <= ask_pos;
-            else
-                rd_en <= '0';
-            end if;
+        if rising_edge(pxl_clk) then
+            get_pos <= curr_pos;
             
             -- TODO: check pixel position is bottom right of tile
             if head_pos = curr_pos then
                 wr_en <= '1';
                 set_pos <= head_pos;
-                set_tile <= snake;
+                set_tile_world <= snake;
             else
                 wr_en <= '0';
             end if;
-            
+            --
             if tail_pos = curr_pos then
-                wr_en <= '1';
+            --    wr_en <= '1';
                 set_pos <= tail_pos;
-                set_tile <= grass;
+                set_tile_world <= grass;
             else
-                wr_en <= '0';
+            --    wr_en <= '0';
             end if;
-            
-            index := index + 1;
         end if;
     end process;
 end Behavioral;

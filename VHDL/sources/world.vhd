@@ -19,8 +19,8 @@ entity world is
         def_tile: t_tile := empty -- Default tile type
     );
     port (
-        in_pos: t_pos;
-        out_pos: t_pos;
+        in_pos:  in t_pos;
+        out_pos: in t_pos;
         wr_en, rd_en: in std_logic;
         
         tile_in: in t_tile;
@@ -62,25 +62,23 @@ architecture IP of world is
     component dist_mem_gen_0
         port (
             a : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
-            d : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+            d : IN STD_LOGIC_VECTOR(5 DOWNTO 0);
             clk : IN STD_LOGIC;
             we : IN STD_LOGIC;
-            spo : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)
+            spo : OUT STD_LOGIC_VECTOR(5 DOWNTO 0)
         );
     end component;
     signal a: std_logic_vector(5 downto 0);
-    signal d, spo: std_logic_vector(3 downto 0);
     signal we: std_logic;
     begin
     fifo: dist_mem_gen_0
         port map(
             a => a,
-            d => d,
+            d => tile_in,
             clk => clk,
             we => we,
-            spo => spo
+            spo => tile_out
         );
+    a <= std_logic_vector(in_pos.x(2 downto 0) & in_pos.y(2 downto 0));
     we <= wr_en;
-    d <= tile_in;
-    tile_out <= spo;
 end IP;

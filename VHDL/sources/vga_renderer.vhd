@@ -77,6 +77,7 @@ port(
     pxl_clk: in std_logic;
     tile: in t_tile;
     pos: out t_pos;
+    enable_write: out std_logic; -- TODO: remove
     vga_hs, vga_vs: out std_logic;
     vga_r, vga_g, vga_b: out std_logic_vector(3 downto 0)
 );
@@ -100,36 +101,37 @@ architecture Behavioral of vga_renderer is
     signal h_count_ctr, v_count_ctr: unsigned(11 downto 0);
     signal hs, vs: std_logic := '0';
 begin
-    e_tileset_rom: entity work.tileset_rom port map (
-        tile_index => to_integer(unsigned(tile)),
-        tile_offx => tile_offx,
-        tile_offy => tile_offy,
-        data => pixel_data
-    );
+    e_tileset_rom: entity work.tileset_rom 
+        port map (
+            tile_index => to_integer(unsigned(tile)),
+            tile_offx => tile_offx,
+            tile_offy => tile_offy,
+            data => pixel_data
+        );
     
     e_vga_controller: entity work.vga_controller
-    generic map (
-        h_visible_area => window.h_visible_area,
-        h_front_porch  => window.h_front_porch,
-        h_sync_pulse   => window.h_sync_pulse,
-        h_back_porch   => window.h_back_porch,
-        h_total        => window.h_total,
-        v_visible_area => window.v_visible_area,
-        v_front_porch  => window.v_front_porch,
-        v_sync_pulse   => window.v_sync_pulse,
-        v_back_porch   => window.v_back_porch,
-        v_total        => window.v_total
-    ) 
-    port map(
-        pxl_clk              => pxl_clk,
-        hs                   => hs,
-        vs                   => vs,
-        h_count              => h_count_ctr,
-        v_count              => v_count_ctr
-    );
+        generic map (
+            h_visible_area => window.h_visible_area,
+            h_front_porch  => window.h_front_porch,
+            h_sync_pulse   => window.h_sync_pulse,
+            h_back_porch   => window.h_back_porch,
+            h_total        => window.h_total,
+            v_visible_area => window.v_visible_area,
+            v_front_porch  => window.v_front_porch,
+            v_sync_pulse   => window.v_sync_pulse,
+            v_back_porch   => window.v_back_porch,
+            v_total        => window.v_total
+        ) 
+        port map(
+            pxl_clk              => pxl_clk,
+            hs                   => hs,
+            vs                   => vs,
+            h_count              => h_count_ctr,
+            v_count              => v_count_ctr
+        );
     
-    pos_h <= h_count_ctr(posh_bits+scale-2 downto scale-1);
-    pos_v <= v_count_ctr(posv_bits+scale-2 downto scale-1);
+    pos_h <= h_count_ctr(t_posh'high+scale-1 downto scale-1);
+    pos_v <= v_count_ctr(t_posv'high+scale-1 downto scale-1);
     
     vga_hs <= hs;
     vga_vs <= vs;
@@ -140,13 +142,15 @@ begin
                     not window.v_polarity;
 
     pos <= (
-        x => pos_h(posh_bits-1 downto tile_offx_bits),
-        y => pos_v(posv_bits-1 downto tile_offy_bits)
+        x => signed(pos_h(t_posh'high downto tile_offx_bits)),
+        y => signed(pos_v(t_posv'high downto tile_offy_bits))
     );
 
-    tile_offx <= pos_h(tile_offx_bits-1 downto 0) when visible = '1' else (others => '0');
-    tile_offy <= pos_v(tile_offy_bits-1 downto 0) when visible = '1' else (others => '0');
+    tile_offx <= pos_h(t_tile_offx'high downto 0) when visible = '1' else (others => '0');
+    tile_offy <= pos_v(t_tile_offy'high downto 0) when visible = '1' else (others => '0');
 
+    enable_write <= '1' when tile_offx = max_tile_offx and tile_offy = max_tile_offy else '1'; 
+    
     process (pxl_clk) is
     begin
         if falling_edge(pxl_clk) then

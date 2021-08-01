@@ -54,13 +54,13 @@ rom = [0 for _ in range(index_space)]
 
 for sprite_index in tqdm(range(index_space)):
         sprite = []
-        for x in range(0, sprite_width):
+        for y in range(0, sprite_width):
             row = []
-            for y in range(0, sprite_width):
+            for x in range(0, sprite_width):
                 r, g, b, _ = pixels[x, sprite_index*sprite_height + y]
                 row.append(closest((r, g, b)))
             sprite.append("\n\t\t(" + ", ".join([f'"{index:0{pixel_width}b}"' for index in row]) + ")")
-        sprite.reverse()
+        #sprite.reverse()
         sprite = "\n\t(" + ", ".join(sprite) + "\n\t)"
         rom[sprite_index] = f'{sprite}'
 

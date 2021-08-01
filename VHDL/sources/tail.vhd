@@ -17,9 +17,10 @@ entity tail is
         memory_size: integer := 16
     );
     port(
+        clk, rst: in std_logic;
+        update: in std_logic;
         shift, load: in std_logic;
         in_pos: in t_pos;
-        clk, rst: in std_logic;
         
         out_pos: out t_pos;
         empty: out std_logic := '1';
@@ -35,7 +36,7 @@ begin
     process (clk) is
         variable size: integer := 0;
     begin
-        if rising_edge(clk) then
+        if rising_edge(clk) and update = '1' then
             if shift = '1' then -- TODO: check FIFO not empty
                 mem <= mem(1 to memory_size-1) & zero_pos;
                 if size > 0 then
@@ -77,7 +78,7 @@ begin
     -- Fifo with data width of 36
     -- least significant 18 bits represent X
     -- most  significant 18 bits represent Y
-    fifo: fifo_generator_0 
+    fifo: fifo_generator_0
         port map (
             clk => clk,
             rst => rst,
@@ -88,9 +89,9 @@ begin
             dout => dout,
             din => din
         );
-     load0 <= load and rst;
-     shift0 <= shift and rst;
-     out_pos.x <= unsigned(dout(posx_bits-1 downto 0));
-     out_pos.y <= unsigned(dout(posy_bits+posx_bits-1 downto posx_bits));
+     load0 <= load   and rst and update;
+     shift0 <= shift and rst and update;
+     out_pos.x <= t_posx(dout(posx_bits-1 downto 0));
+     out_pos.y <= t_posy(dout(posy_bits+posx_bits-1 downto posx_bits));
      din(posx_bits+posy_bits-1 downto 0) <= std_logic_vector(in_pos.y) & std_logic_vector(in_pos.x);
 end WithFIFO;

@@ -22,14 +22,17 @@ end eden;
 
 architecture Behavioral of eden is
     constant world_bounds: t_box := (
-        tl => (x => to_unsigned(3, posx_bits),  y => to_unsigned(3, posy_bits)),
-        br => (x => to_unsigned(10, posx_bits),  y => to_unsigned(10, posy_bits))
+        tl => (x => zero_x + 3,  y => zero_y + 1),
+        br => (x => max_x  - 3,  y => max_y  - 1)
     );
     
     signal nrst: std_logic;
-    signal u, d, l, r: std_logic;
-    signal head_pos, tail_pos: t_pos;
+    signal dir: std_logic_vector(3 downto 0);
+    signal head_pos,  neck_pos,  tail_pos:  t_pos;
+    signal head_tile, neck_tile, tail_tile: t_tile;
     signal display_value : std_logic_vector( 31 downto 0 ) := (others => '0');
+    
+    signal tick: std_logic;
     
     -- World
     signal world_pos: t_pos;
@@ -49,6 +52,7 @@ architecture Behavioral of eden is
     signal pxl_clk: std_logic; -- pxl_clk
     signal tile: t_tile;
     signal ask_pos: t_pos;
+    signal enable_write: std_logic;
     component clk_wiz_0
         port (
             clk_in1 : IN STD_LOGIC;
@@ -57,33 +61,44 @@ architecture Behavioral of eden is
     end component;
 begin
     -- Input cleaning
-    e_debouncer_u: entity work.debouncer(Behavioral)
+    --e_debouncer_u: entity work.debouncer(Behavioral)
+    --    port map (
+    --        clk => CLK,
+    --        rst => RST,
+    --        bouncy => BTNU,
+    --        pulse => u
+    --    );
+    --e_debouncer_d: entity work.debouncer(Behavioral)
+    --    port map (
+    --        clk => CLK,
+    --        rst => RST,
+    --        bouncy => BTND,
+    --        pulse => d
+    --    );
+    --e_debouncer_l: entity work.debouncer(Behavioral)
+    --    port map (
+    --        clk => CLK,
+    --        rst => RST,
+    --        bouncy => BTNL,
+    --        pulse => l
+    --    );
+    --e_debouncer_r: entity work.debouncer(Behavioral)
+    --    port map (
+    --        clk => CLK,
+    --        rst => RST,
+    --        bouncy => BTNR,
+    --        pulse => r
+    --    );
+    
+    e_counter_tick: entity work.counter(Behavioral)
+        generic map (
+            max => 20000000
+        )
         port map (
-            clk => CLK,
-            rst => RST,
-            bouncy => BTNU,
-            pulse => u
-        );
-    e_debouncer_d: entity work.debouncer(Behavioral)
-        port map (
-            clk => CLK,
-            rst => RST,
-            bouncy => BTND,
-            pulse => d
-        );
-    e_debouncer_l: entity work.debouncer(Behavioral)
-        port map (
-            clk => CLK,
-            rst => RST,
-            bouncy => BTNL,
-            pulse => l
-        );
-    e_debouncer_r: entity work.debouncer(Behavioral)
-        port map (
-            clk => CLK,
-            rst => RST,
-            bouncy => BTNR,
-            pulse => r
+            clk => pxl_clk, rst => rst,
+            enable => '1',
+            tc => tick,
+            count => open
         );
         
     -- Game logic
@@ -103,22 +118,32 @@ begin
             out_pos => get_pos,
             tile_out => get_tile_world,
             
-            clk => CLK,
+            clk => pxl_clk,
             rst => RST
         );
     e_snake: entity work.snake
         generic map (
             start_pos => world_bounds.tl,
+            start_mot => mot_r,
             bounds => world_bounds
         )
         port map (
-            u => u, d => d, l => l, r => r,
-            head_pos => head_pos,
-            tail_pos => tail_pos,
-            grow => SW(15),
-            load => SW(14),
-            clk => CLK,
-            rst => RST
+            clk => pxl_clk, rst => RST,
+            
+            update => tick,
+            
+            dir => dir,
+            head_pos  => head_pos,
+            head_tile => head_tile,
+            
+            tail_pos  => tail_pos,
+            tail_tile => tail_tile,
+            
+            neck_pos  => neck_pos,
+            neck_tile => neck_tile,
+            
+            grow      => SW(15),
+            load      => SW(14)
         );
         
     -- Graphics
@@ -137,12 +162,13 @@ begin
         );
     e_vga_renderer : entity work.vga_renderer(Behavioral) 
         generic map (
-            scale => 4
+            scale => 3
         )
         port map (
             pxl_clk => pxl_clk,
             tile => draw_tile,
             pos => curr_pos,
+            enable_write => enable_write,
             vga_hs => VGA_HS, vga_vs => VGA_VS,
             vga_r => VGA_R, vga_g => VGA_G, vga_b => VGA_B
         );
@@ -177,32 +203,37 @@ begin
                  else crate;
     
     nrst <= not RST;
-    display_value(posx_bits-1 downto 0) <=
+    display_value(t_posx'high downto 0) <=
         std_logic_vector(head_pos.x) when SW(4 downto 0) = "00001" else
         std_logic_vector(head_pos.y) when SW(4 downto 0) = "00010" else
         std_logic_vector(tail_pos.x) when SW(4 downto 0) = "00100" else
         std_logic_vector(tail_pos.y) when SW(4 downto 0) = "01000" else
         (others => '0');
+    get_pos <= curr_pos;
+    dir <= BTNU & BTND & BTNL & BTNR;
+    
     process (pxl_clk) is
     begin
         if rising_edge(pxl_clk) then
-            get_pos <= curr_pos;
+            set_pos <= curr_pos;
             
-            -- TODO: check pixel position is bottom right of tile
-            if head_pos = curr_pos then
-                wr_en <= '1';
-                set_pos <= head_pos;
-                set_tile_world <= snake;
-            else
-                wr_en <= '0';
-            end if;
-            --
-            if tail_pos = curr_pos then
-            --    wr_en <= '1';
-                set_pos <= tail_pos;
-                set_tile_world <= grass;
-            else
-            --    wr_en <= '0';
+            wr_en <= '0';
+            if enable_write = '1' then
+                -- TODO: check pixel position is bottom right of tile
+                if head_pos = curr_pos then
+                    wr_en <= '1';
+                    set_tile_world <= head_tile;
+                end if;
+                
+                if neck_pos = curr_pos then
+                    wr_en <= '1';
+                    set_tile_world <= neck_tile;
+                end if;
+                
+                if tail_pos = curr_pos then
+                --    wr_en <= '1';
+                --    set_tile_world <= short_grass;
+                end if;
             end if;
         end if;
     end process;

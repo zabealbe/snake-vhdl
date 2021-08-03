@@ -32,8 +32,13 @@ package world_pkg is
     constant snake_body_v:  t_tile := "110101"; -- Snake body vertical
     constant snake_body_h:  t_tile := "110110"; -- Snake body horizontal
     
+    constant snake_head_bite_d:  t_tile := "110111"; -- Snake head biting pointing downwards
+    constant snake_head_bite_l:  t_tile := "111000"; -- Snake head biting  pointing left
+    constant snake_head_bite_u:  t_tile := "111001"; -- Snake head biting  pointing upwards
+    constant snake_head_bite_r:  t_tile := "111010"; -- Snake head biting  pointing right
+    
     -- Representation of x coordinate
-    constant posx_bits: integer := 6; -- n of bits
+    constant posx_bits: integer := 7; -- n of bits
     subtype t_posx is signed(posx_bits-1 downto 0);
     constant min_x: t_posx :=  (t_posx'high => '1', others => '0');  -- Smallest representable x position
     constant max_x: t_posx :=  (t_posx'high => '0', others => '1');  -- Biggest  representable x position
@@ -54,6 +59,7 @@ package world_pkg is
     constant min_pos: t_pos := (x => min_x, y => min_y);    -- Smallest representable position
     constant max_pos: t_pos := (x => max_x, y => max_y);    -- Biggest  representable position
     constant zero_pos: t_pos := (x => zero_x, y => zero_y); -- Position of origin
+    function to_pos(x, y: integer) return t_pos;               -- Position constructor
     function "+" (L, R: t_pos) return t_pos;                -- Position vector algebra
     function "-" (L, R: t_pos) return t_pos;
 
@@ -80,6 +86,10 @@ package world_pkg is
 end package;
 
 package body world_pkg is
+    function to_pos(x, y: integer) return t_pos is
+    begin
+        return (x => to_signed(x, posx_bits), y => to_signed(y, posy_bits));
+    end function;
     function "+" (L, R: t_pos) return t_pos is
     begin
         return (x => L.x + R.x, y => L.y + R.y);

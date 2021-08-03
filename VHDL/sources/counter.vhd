@@ -21,8 +21,6 @@ begin
         if rst = '0' then
             value <= 0; 
         elsif rising_edge(clk) then
-            --if init = '1' then
-            --    value <= 0;
             if enable = '1' then
                 if value = max then
                     value <= 0;
@@ -33,6 +31,5 @@ begin
         end if;
     end process;
     
-    count <= value; 
-    tc <= '1' when value = max else '0';
+    tc <= '1' when value = max and enable = '1' else '0';
 end Behavioral;

@@ -88,7 +88,7 @@ end package;
 package body world_pkg is
     function to_pos(x, y: integer) return t_pos is
     begin
-        return (x => to_signed(x, posx_bits), y => to_signed(y, posy_bits));
+        return (x => to_signed(x, t_posx'length), y => to_signed(y, t_posy'length));
     end function;
     function "+" (L, R: t_pos) return t_pos is
     begin

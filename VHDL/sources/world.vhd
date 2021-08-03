@@ -31,14 +31,10 @@ entity world is
 end world;
 
 architecture Behavioral of world is
-        type REGW is array (0 to to_integer(max_y)) of t_tile;
-        type REG is array (0 to to_integer(max_x)) of REGW;
+        type REGW is array (0 to to_integer(max_x)) of t_tile;
+        type REG  is array (0 to to_integer(max_y)) of REGW;
         signal memory: REG := (others => (others => def_tile));
     begin
-    tile_out <= memory
-        (to_integer(out_pos.x))
-        (to_integer(out_pos.y))
-        ;
     process (clk, rst) is
     begin
         if rst = '0' then
@@ -47,17 +43,17 @@ architecture Behavioral of world is
             -- Change a block in the world
             if wr_en = '1' then
                 memory
-                    (to_integer(in_pos.x))
                     (to_integer(in_pos.y))
+                    (to_integer(in_pos.x))
                     <= tile_in;
             end if;
             -- Read a block from the world
-            --if rd_en = '1' then
-            --    tile_out <= memory
-            --        (to_integer(out_pos.x))
-            --        (to_integer(out_pos.y))
-            --        ;
-            --end if;
+            if rd_en = '1' then
+                tile_out <= memory
+                    (to_integer(out_pos.y))
+                    (to_integer(out_pos.x))
+                    ;
+            end if;
         end if;
     end process;
 end Behavioral;

@@ -171,13 +171,13 @@ begin
     tile_offy <= pos_v(t_tile_offy'high downto 0) when visible = '1' else (others => '0');
 
     enable_write <= '1' when 
-        h_count_ctr(t_tile_offx'high+scale-1 downto 0) = max_tile_offx sll scale and 
-        h_count_ctr(t_tile_offy'high+scale-1 downto 0) = max_tile_offy sll scale 
+        h_count_ctr(t_tile_offx'high+scale-1 downto 0) = max_tile_offx sll (scale - 1) and 
+        h_count_ctr(t_tile_offy'high+scale-1 downto 0) = max_tile_offy sll (scale - 1)
         else '0'; 
     
     process (pxl_clk) is
     begin
-        if falling_edge(pxl_clk) then
+        if rising_edge(pxl_clk) then
             -- Set color values to 0 when out of the visible area
             vga_r <= (others => '0');
             vga_g <= (others => '0');

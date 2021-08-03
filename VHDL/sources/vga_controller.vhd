@@ -7,6 +7,7 @@ use work.world_pkg.all;
 
 entity vga_controller is
 generic (
+    h_polarity: std_logic;
     -- values are in pixels
     h_visible_area: natural;
     h_front_porch: natural;
@@ -14,6 +15,7 @@ generic (
     h_back_porch: natural;
     h_total: natural;
     
+    v_polarity: std_logic;
     -- values are in pixels
     v_visible_area: natural;
     v_front_porch: natural;
@@ -45,30 +47,32 @@ begin
     h_count <= h_count_internal;
     v_count <= v_count_internal;
     
-    hs <= '1' when h_count_internal >= h_pre_sync and h_count_internal < h_post_sync else '0';
-    vs <= '1' when v_count_internal >= v_pre_sync and v_count_internal < v_post_sync else '0';
+    hs <= h_polarity when h_count_internal >= h_pre_sync and h_count_internal < h_post_sync 
+        else not h_polarity;
+    vs <= v_polarity when v_count_internal >= v_pre_sync and v_count_internal < v_post_sync
+        else not h_polarity;
     
     -- Horizontal counter
     process (pxl_clk)
     begin
-    if (rising_edge(pxl_clk)) then
-        if (h_count_internal = (h_total - 1)) then
-            h_count_internal <= (others =>'0');
-        else
-            h_count_internal <= h_count_internal + 1;
+        if (rising_edge(pxl_clk)) then
+            if (h_count_internal = (h_total - 1)) then
+                h_count_internal <= (others =>'0');
+            else
+                h_count_internal <= h_count_internal + 1;
+            end if;
         end if;
-    end if;
     end process;
     
     -- Vertical counter
     process (pxl_clk)
     begin
-    if (rising_edge(pxl_clk)) then
-      if ((h_count_internal = (h_total - 1)) and (v_count_internal = (v_total - 1))) then
-        v_count_internal <= (others =>'0');
-      elsif (h_count_internal = (h_total - 1)) then
-        v_count_internal <= v_count_internal + 1;
-      end if;
-    end if;
+        if (rising_edge(pxl_clk)) then
+            if ((h_count_internal = (h_total - 1)) and (v_count_internal = (v_total - 1))) then
+                v_count_internal <= (others =>'0');
+            elsif (h_count_internal = (h_total - 1)) then
+                v_count_internal <= v_count_internal + 1;
+            end if;
+        end if;
     end process;
 end Behavioral;

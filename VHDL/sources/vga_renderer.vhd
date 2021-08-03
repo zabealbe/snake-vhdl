@@ -58,6 +58,24 @@ package vga is
         v_back_porch => 38,
         v_total => 1066
     );
+    
+    constant window_1920x1080: t_window := (
+        h_polarity => '1',
+    
+        h_visible_area => 1920,
+        h_front_porch => 88,
+        h_sync_pulse => 44,
+        h_back_porch => 148,
+        h_total => 2200,
+        
+        v_polarity => '1',
+
+        v_visible_area => 1080,
+        v_front_porch => 4,
+        v_sync_pulse => 5,
+        v_back_porch => 36,
+        v_total => 1125
+    );
 end package;
 
 library ieee;
@@ -70,7 +88,7 @@ use work.world_pkg.all;
 
 entity vga_renderer is
 generic (
-    window: t_window := window_1280x1024;
+    window: t_window := window_1920x1080;
     scale: integer   := 1                 -- exponential, 1 pixel is stetched to 2^(scale - 1) pixels
 );
 port( 
@@ -99,7 +117,7 @@ architecture Behavioral of vga_renderer is
 
     -- Vga controller
     signal h_count_ctr, v_count_ctr: unsigned(11 downto 0);
-    signal hs, vs: std_logic := '0';
+    signal hs, vs: std_logic;
 begin
     e_tileset_rom: entity work.tileset_rom 
         port map (
@@ -111,11 +129,14 @@ begin
     
     e_vga_controller: entity work.vga_controller
         generic map (
+            h_polarity     => window.h_polarity,
             h_visible_area => window.h_visible_area,
             h_front_porch  => window.h_front_porch,
             h_sync_pulse   => window.h_sync_pulse,
             h_back_porch   => window.h_back_porch,
             h_total        => window.h_total,
+            
+            v_polarity     => window.v_polarity,
             v_visible_area => window.v_visible_area,
             v_front_porch  => window.v_front_porch,
             v_sync_pulse   => window.v_sync_pulse,
@@ -136,10 +157,10 @@ begin
     vga_hs <= hs;
     vga_vs <= vs;
 
-    visible <= window.h_polarity when 
-                    h_count_ctr < window.h_visible_area and
-                    v_count_ctr < window.v_visible_area else
-                    not window.v_polarity;
+    visible <= '1' when 
+        h_count_ctr < window.h_visible_area and
+        v_count_ctr < window.v_visible_area
+        else '0';
 
     pos <= (
         x => signed(pos_h(t_posh'high downto tile_offx_bits)),
@@ -149,7 +170,10 @@ begin
     tile_offx <= pos_h(t_tile_offx'high downto 0) when visible = '1' else (others => '0');
     tile_offy <= pos_v(t_tile_offy'high downto 0) when visible = '1' else (others => '0');
 
-    enable_write <= '1' when tile_offx = max_tile_offx and tile_offy = max_tile_offy else '1'; 
+    enable_write <= '1' when 
+        h_count_ctr(t_tile_offx'high+scale-1 downto 0) = max_tile_offx sll scale and 
+        h_count_ctr(t_tile_offy'high+scale-1 downto 0) = max_tile_offy sll scale 
+        else '0'; 
     
     process (pxl_clk) is
     begin
@@ -159,7 +183,7 @@ begin
             vga_g <= (others => '0');
             vga_b <= (others => '0');
             -- Check inside visible area
-            if visible = '1' then
+            if visible = '1' then                   
                 vga_r <= pixel_data(11 downto 8);
                 vga_g <= pixel_data(7 downto 4);
                 vga_b <= pixel_data(3 downto 0);

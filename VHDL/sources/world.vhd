@@ -35,6 +35,10 @@ architecture Behavioral of world is
         type REG is array (0 to to_integer(max_x)) of REGW;
         signal memory: REG := (others => (others => def_tile));
     begin
+    tile_out <= memory
+        (to_integer(out_pos.x))
+        (to_integer(out_pos.y))
+        ;
     process (clk, rst) is
     begin
         if rst = '0' then
@@ -48,12 +52,12 @@ architecture Behavioral of world is
                     <= tile_in;
             end if;
             -- Read a block from the world
-            if rd_en = '1' then
-                tile_out <= memory
-                    (to_integer(out_pos.x))
-                    (to_integer(out_pos.y))
-                    ;
-            end if;
+            --if rd_en = '1' then
+            --    tile_out <= memory
+            --        (to_integer(out_pos.x))
+            --        (to_integer(out_pos.y))
+            --        ;
+            --end if;
         end if;
     end process;
 end Behavioral;

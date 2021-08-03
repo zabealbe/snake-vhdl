@@ -25,10 +25,13 @@ architecture Behavioral of eden is
         tl => (x => zero_x + 3,  y => zero_y + 1),
         br => (x => max_x  - 3,  y => max_y  - 1)
     );
+    constant start_pos: t_pos := world_bounds.tl + to_pos(2, 0);
+    
+    signal score: natural := 0;
     
     signal nrst: std_logic;
     signal dir: std_logic_vector(3 downto 0);
-    signal head_pos,  neck_pos,  tail_pos:  t_pos;
+    signal head_pos,  neck_pos,  tail_pos, last_tail_pos:  t_pos;
     signal head_tile, neck_tile, tail_tile: t_tile;
     signal display_value : std_logic_vector( 31 downto 0 ) := (others => '0');
     
@@ -123,7 +126,7 @@ begin
         );
     e_snake: entity work.snake
         generic map (
-            start_pos => world_bounds.tl,
+            start_pos => start_pos,
             start_mot => mot_r,
             bounds => world_bounds
         )
@@ -142,8 +145,7 @@ begin
             neck_pos  => neck_pos,
             neck_tile => neck_tile,
             
-            grow      => SW(15),
-            load      => SW(14)
+            eat       => SW(15)
         );
         
     -- Graphics
@@ -203,26 +205,33 @@ begin
                  else crate;
     
     nrst <= not RST;
-    display_value(t_posx'high downto 0) <=
-        std_logic_vector(head_pos.x) when SW(4 downto 0) = "00001" else
-        std_logic_vector(head_pos.y) when SW(4 downto 0) = "00010" else
-        std_logic_vector(tail_pos.x) when SW(4 downto 0) = "00100" else
-        std_logic_vector(tail_pos.y) when SW(4 downto 0) = "01000" else
-        (others => '0');
+    display_value <= std_logic_vector(to_unsigned(score, display_value'length));
     get_pos <= curr_pos;
     dir <= BTNU & BTND & BTNL & BTNR;
     
-    process (pxl_clk) is
+    process (pxl_clk, rst) is
     begin
-        if rising_edge(pxl_clk) then
+        if rst = '0' then
+            score <= 0;
+            last_tail_pos <= tail_pos;
+        elsif rising_edge(pxl_clk) then
             set_pos <= curr_pos;
-            
             wr_en <= '0';
+            
+            if tick = '1' then
+                last_tail_pos <= tail_pos;
+            end if;
+                    
             if enable_write = '1' then
                 -- TODO: check pixel position is bottom right of tile
                 if head_pos = curr_pos then
                     wr_en <= '1';
                     set_tile_world <= head_tile;
+                    
+                    -- check if head is over apple
+                    if get_tile_world = apple then
+                        score <= score + 1;
+                    end if;
                 end if;
                 
                 if neck_pos = curr_pos then
@@ -231,8 +240,11 @@ begin
                 end if;
                 
                 if tail_pos = curr_pos then
-                --    wr_en <= '1';
-                --    set_tile_world <= short_grass;
+                    wr_en <= '1';
+                    set_tile_world <= tail_tile;
+                elsif last_tail_pos = curr_pos then
+                    wr_en <= '1';
+                    set_tile_world <= short_grass;
                 end if;
             end if;
         end if;

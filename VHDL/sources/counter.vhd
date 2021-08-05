@@ -17,6 +17,7 @@ end counter;
 architecture Behavioral of counter is
     signal value: integer range 0 to max := 0;
 begin
+    count <= value;
     process (clk, rst) begin
         if rst = '0' then
             value <= 0; 

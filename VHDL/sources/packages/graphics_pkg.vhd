@@ -41,4 +41,7 @@ package graphics_pkg is
     -- Max  tile offset
     constant max_tile_offx: t_tile_offx := (others => '1');
     constant max_tile_offy: t_tile_offy := (others => '1');
+    -- Min  tile offset
+    constant min_tile_offx: t_tile_offx := (others => '0');
+    constant min_tile_offy: t_tile_offy := (others => '0');
 end package;

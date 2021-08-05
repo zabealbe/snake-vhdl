@@ -19,8 +19,8 @@ entity world is
         def_tile: t_tile := empty -- Default tile type
     );
     port (
-        in_pos:  in t_pos;
-        out_pos: in t_pos;
+        pos_in:  in t_pos;
+        pos_out: in t_pos;
         wr_en, rd_en: in std_logic;
         
         tile_in: in t_tile;
@@ -31,10 +31,13 @@ entity world is
 end world;
 
 architecture Behavioral of world is
-        type REGW is array (0 to to_integer(max_x)) of t_tile;
-        type REG  is array (0 to to_integer(max_y)) of REGW;
+        type REGW is array (0 to to_integer(bounds.br.x - bounds.tl.x)) of t_tile;
+        type REG  is array (0 to to_integer(bounds.br.y - bounds.tl.y)) of REGW;
         signal memory: REG := (others => (others => def_tile));
+        signal pos_in_rel, pos_out_rel: t_pos; -- Relative position to border.tl
     begin
+    pos_in_rel <= pos_in - bounds.tl;
+    pos_out_rel <= pos_out - bounds.tl;
     process (clk, rst) is
     begin
         if rst = '0' then
@@ -43,15 +46,15 @@ architecture Behavioral of world is
             -- Change a block in the world
             if wr_en = '1' then
                 memory
-                    (to_integer(in_pos.y))
-                    (to_integer(in_pos.x))
+                    (to_integer(pos_in_rel.y))
+                    (to_integer(pos_in_rel.x))
                     <= tile_in;
             end if;
             -- Read a block from the world
             if rd_en = '1' then
                 tile_out <= memory
-                    (to_integer(out_pos.y))
-                    (to_integer(out_pos.x))
+                    (to_integer(pos_out_rel.y))
+                    (to_integer(pos_out_rel.x))
                     ;
             end if;
         end if;
@@ -79,6 +82,6 @@ architecture IP of world is
             we => we,
             spo => tile_out
         );
-    a <= std_logic_vector(in_pos.x(2 downto 0) & in_pos.y(2 downto 0));
+    a <= std_logic_vector(pos_in.x(2 downto 0) & pos_in.y(2 downto 0));
     we <= wr_en;
 end IP;

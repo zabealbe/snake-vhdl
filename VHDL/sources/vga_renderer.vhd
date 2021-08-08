@@ -5,6 +5,7 @@ use work.world_pkg.all;
 
 package vga is
     type t_window is record
+        pxl_clk   : real;
         
         h_polarity: std_logic;
         -- values are in pixels
@@ -24,57 +25,63 @@ package vga is
     end record;
     
     constant window_640x480: t_window := (
-        h_polarity => '0',
+        pxl_clk        => 25.175,
+    
+        h_polarity     => '0',
         
         h_visible_area => 640,
-        h_front_porch => 16,
-        h_sync_pulse => 96,
-        h_back_porch => 48,
-        h_total => 800,
+        h_front_porch  => 16,
+        h_sync_pulse   => 96,
+        h_back_porch   => 48,
+        h_total        => 800,
         
-        v_polarity => '0',
+        v_polarity     => '0',
         
         v_visible_area => 480,
-        v_front_porch => 10,
-        v_sync_pulse => 2,
-        v_back_porch => 33,
-        v_total => 525
+        v_front_porch  => 10,
+        v_sync_pulse   => 2,
+        v_back_porch   => 33,
+        v_total        => 525
     );
 
     constant window_1280x1024: t_window := (
-        h_polarity => '1',
+        pxl_clk        => 108.0,
+
+        h_polarity     => '1',
     
         h_visible_area => 1280,
-        h_front_porch => 48,
-        h_sync_pulse => 112,
-        h_back_porch => 248,
-        h_total => 1688,
+        h_front_porch  => 48,
+        h_sync_pulse   => 112,
+        h_back_porch   => 248,
+        h_total        => 1688,
         
-        v_polarity => '1',
+        v_polarity     => '1',
 
         v_visible_area => 1024,
-        v_front_porch => 1,
-        v_sync_pulse => 3,
-        v_back_porch => 38,
-        v_total => 1066
+        v_front_porch  => 1,
+        v_sync_pulse   => 3,
+        v_back_porch   => 38,
+        v_total        => 1066
     );
     
     constant window_1920x1080: t_window := (
-        h_polarity => '1',
+        pxl_clk        => 148.5,
+
+        h_polarity     => '1',
     
         h_visible_area => 1920,
-        h_front_porch => 88,
-        h_sync_pulse => 44,
-        h_back_porch => 148,
-        h_total => 2200,
+        h_front_porch  => 88,
+        h_sync_pulse   => 44,
+        h_back_porch   => 148,
+        h_total        => 2200,
         
-        v_polarity => '1',
+        v_polarity     => '1',
 
         v_visible_area => 1080,
-        v_front_porch => 4,
-        v_sync_pulse => 5,
-        v_back_porch => 36,
-        v_total => 1125
+        v_front_porch  => 4,
+        v_sync_pulse   => 5,
+        v_back_porch   => 36,
+        v_total        => 1125
     );
 end package;
 
@@ -106,7 +113,7 @@ architecture Behavioral of vga_renderer is
     signal pos_h: t_posh;
     -- MSB: tile t_posy, LSB: t_tile_offy
     signal pos_v: t_posv;
-
+    
     signal visible: std_logic := '0';
 
     signal tile_offx: t_tile_offx := (others => '0');
@@ -163,18 +170,22 @@ begin
         else '0';
 
     pos <= (
-        x => signed(pos_h(t_posh'high downto tile_offx_bits)),
-        y => signed(pos_v(t_posv'high downto tile_offy_bits))
+        x => pos_h(t_posh'high downto t_tile_offx'length),
+        y => pos_v(t_posv'high downto t_tile_offy'length)
     );
 
     tile_offx <= pos_h(t_tile_offx'high downto 0) when visible = '1' else (others => '0');
     tile_offy <= pos_v(t_tile_offy'high downto 0) when visible = '1' else (others => '0');
 
     enable_write <= '1' when 
-        h_count_ctr(t_tile_offx'high+scale-1 downto 0) = max_tile_offx sll (scale - 1) and 
-        h_count_ctr(t_tile_offy'high+scale-1 downto 0) = max_tile_offy sll (scale - 1)
-        else '0'; 
-    
+        h_count_ctr(t_tile_offx'high+scale-1 downto 0) = (t_tile_offy'high+scale-1 downto 0 => '1') and 
+        v_count_ctr(t_tile_offy'high+scale-1 downto 0) = (t_tile_offy'high+scale-1 downto 0 => '1')
+        else '0';
+    --enable_write <= '1' when 
+    --    h_count_ctr(t_tile_offx'high+scale-1 downto 0) = "00000" and 
+    --    v_count_ctr(t_tile_offy'high+scale-1 downto 0) = "00000"
+    --    else '0'; 
+        
     process (pxl_clk) is
     begin
         if rising_edge(pxl_clk) then

@@ -4,14 +4,13 @@ use ieee.numeric_std.all;
 
 entity PRNG is -- Pseudo Random Number Generator
   generic (
-        size : integer range 1 to 30 := 4 -- Generate number from 0 to (2^size) - 1, max 2^30 -1
-    );
+        size: integer range 1 to 30 := 4 -- Generate number from 0 to (2^size) - 1, max 2^30 -1
+  );
   port (
     clk : in std_logic;
     rst : in std_logic; -- Reset  counter (seed) = 0
     init : in std_logic; -- Stop counter and set initial value (seed) of LFSR   
     enable : in std_logic; -- Generate number
-    ready : out std_logic; -- Number is ready to be read
     data : out std_logic_vector(size-1 downto 0) -- Generate one number every clock cycle
   );
 end entity PRNG;
@@ -23,13 +22,12 @@ architecture Behavioral of PRNG is
     signal seed: integer := 0; 
     signal w_XNOR : std_logic;
     signal feedback: std_logic;
-    type t_state is (b, c, d);
+    type t_state is (b, c);
     -- b: count enable
     -- c: shift enable
     -- d: ready 
     signal state: t_state := b;
 begin
-    ready <= '1' when state = d else '0';
     data <= r_LFSR(size downto 1); -- truncate LFSR
     w_XNOR <= r_LFSR(30) xnor r_LFSR(6) xnor r_LFSR(4) xnor r_LFSR(1); -- XNOR function
     seq: process (clk, rst) is
@@ -47,11 +45,8 @@ begin
                     end if;
                 when c =>
                     if enable = '1' then
-                        state <= d;
                         r_LFSR <= r_LFSR(num-1 downto 1) & w_XNOR;
                     end if;
-                when d =>
-                    state <= c;
             end case;
         end if;
     end process;

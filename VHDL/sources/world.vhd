@@ -26,7 +26,7 @@ entity world is
         
         visible: out std_logic;
         tile_in: in t_tile;
-        tile_out: out t_tile        
+        tile_out: out t_tile := def_tile       
     );
 end world;
 
@@ -61,6 +61,7 @@ architecture Behavioral of world is
         if rising_edge(clk) then
             if rst = '0' then
                 memory <= (others => (others => def_tile));
+                tile_out <= def_tile;
             else
                 -- Write a block to the world
                 if wr_en = '1' and visible_wr = '1' then
@@ -70,11 +71,15 @@ architecture Behavioral of world is
                         <= tile_in;
                 end if;
                 -- Read a block from the world
-                if rd_en = '1' and visible_rd = '1' then
-                    tile_out <= memory
-                        (to_integer(pos_out_rel.y))
-                        (to_integer(pos_out_rel.x))
-                        ;
+                if rd_en = '1' then
+                    if visible_rd = '1' then
+                        tile_out <= memory
+                            (to_integer(pos_out_rel.y))
+                            (to_integer(pos_out_rel.x))
+                            ;
+                     else
+                        tile_out <= empty;
+                     end if;
                 end if;
             end if;
         end if;

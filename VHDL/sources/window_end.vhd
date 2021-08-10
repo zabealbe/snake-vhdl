@@ -20,15 +20,15 @@ architecture Behavioral of window_end is
     constant bounds_text: t_box := (
         tl => (
             x => (bounds.tl.x + bounds.br.x - t_static'length) / 2,
-            y => (bounds.tl.y + bounds.br.y) / 2
+            y => (bounds.tl.y + bounds.br.y - 2) / 2
         ),
         br => (
             x => (bounds.tl.x + bounds.br.x - t_static'length) / 2 + 10,
-            y => (bounds.tl.y + bounds.br.y) / 2 + 3
+            y => (bounds.tl.y + bounds.br.y - 2) / 2 + 4
         )
     );
     -- ROM
-    constant row_0: t_static := (tile_g, tile_a, tile_m, tile_e, empty, tile_o, tile_v, tile_e, tile_r, others => empty);
+    constant row_0: t_static := (tile_g, tile_a, tile_m, tile_e, empty, empty, tile_o, tile_v, tile_e, tile_r, others => empty);
     constant row_1: t_static := (tile_p, tile_r, tile_e, tile_s, tile_s, empty, tile_b, tile_t, tile_n, tile_c, others => empty);
     constant row_2: t_static := (tile_t, tile_o, empty, tile_r, tile_e, tile_s, tile_t, tile_a, tile_r, tile_t, others => empty);
     
@@ -58,7 +58,7 @@ begin
     tile <=
         empty when visible_text = '0' else
         row_0(to_integer(pos_rel.x)) when pos_rel.y = 0 else
-        row_1(to_integer(pos_rel.x)) when pos_rel.y = 1 else
-        row_2(to_integer(pos_rel.x)) when pos_rel.y = 2 else
+        row_1(to_integer(pos_rel.x)) when pos_rel.y = 2 else
+        row_2(to_integer(pos_rel.x)) when pos_rel.y = 3 else
         empty;
 end architecture;

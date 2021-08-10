@@ -29,18 +29,10 @@ begin
         enable => mov,
         data => data_random
     );
-    process (clk, rst) is
-    begin
-        if rising_edge(clk) then
-            if rst = '0' then
-            
-            elsif mov = '1' then
-                pos <= ( -- TODO: better math
-                    x => (unsigned(data_random(data_random'length-1 downto t_posy'length))) mod (bounds_delta.x+1) + bounds.tl.x,
-                    y => (unsigned(data_random(t_posy'length-1 downto 0))) mod (bounds_delta.y+1)  + bounds.tl.y
-                );
-            end if;
-        end if;
-    end process;
-
+    pos <= ( -- TODO: better math
+        x => (unsigned(data_random(data_random'length-1 downto t_posy'length)))
+            mod (bounds_delta.x+1) + bounds.tl.x,
+        y => (unsigned(data_random(t_posy'length-1 downto 0)))
+            mod (bounds_delta.y+1) + bounds.tl.y
+    );
 end Behavioral;

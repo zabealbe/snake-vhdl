@@ -48,8 +48,8 @@ architecture Behavioral of eden is
     
     -- End
     constant end_bounds: t_box := (
-        tl => to_pos(7,  10),
-        br => to_pos(52, 25)
+        tl => to_pos(17, 10),
+        br => to_pos(42, 25)
     );
     constant end_top_left: t_pos := world_bounds.tl - to_pos(0, 3);
     signal get_tile_end: t_tile;
@@ -159,8 +159,7 @@ begin
     e_snake: entity work.snake
         generic map (
             start_pos => start_pos,
-            start_mot => mot_r,
-            bounds => world_bounds
+            start_mot => mot_r
         )
         port map (
             clk => pxl_clk, rst => rst0,
@@ -208,7 +207,7 @@ begin
     snake_die  <= '1' when game_state = game_end else '0';
     snake_move <= '1' when game_state = game_play_move else '0';
     apple_move <= '1' when game_state = game_play_score or game_state = game_setup else '0';
-    score_enable <= '1' when game_state = game_play_score and tick = '1' else '0';
+    score_enable <= '1' when game_state = game_play_score else '0';
     
     draw_tile <= 
         get_tile_end   when end_visible   = '1' and game_state = game_end else
@@ -223,7 +222,7 @@ begin
     begin
         if rising_edge(pxl_clk) then
             if RST = '0' then
-                last_tail_pos <= tail_pos;           -- reset last tail pos
+                last_tail_pos <= to_pos(-1, -1);
                 game_state <= game_idle;
                 wr_en <= '0';
             else

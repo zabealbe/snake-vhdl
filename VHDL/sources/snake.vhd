@@ -5,7 +5,6 @@ use work.world_pkg.all;
 
 entity snake is
     generic (
-        bounds: t_box;
         start_pos: t_pos;
         start_mot: t_mot;
         max_length: integer := 256

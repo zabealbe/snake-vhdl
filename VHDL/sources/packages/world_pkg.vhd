@@ -133,15 +133,19 @@ package world_pkg is
 end package;
 
 package body world_pkg is
+    -- Vector from tuple of integers
     function to_pos(x, y: integer) return t_pos is
     begin
         return (x => to_unsigned(x, t_posx'length), y => to_unsigned(y, t_posy'length));
     end function;
+    
+    -- Vector addition
     function "+" (L, R: t_pos) return t_pos is
     begin
         return (x => L.x + R.x, y => L.y + R.y);
     end function;
-    
+   
+    -- Vector subtraction
     function "-" (L, R: t_pos) return t_pos is
     begin
         return (x => L.x - R.x, y => L.y - R.y);

@@ -16,6 +16,7 @@ end apple;
 
 architecture Behavioral of apple is
     signal data_random: std_logic_vector(t_posx'length+t_posy'length-1 downto 0);
+    constant bounds_delta: t_pos := bounds.br - bounds.tl;
 begin
     e_prng: entity work.PRNG(Behavioral)
     generic map (
@@ -33,13 +34,11 @@ begin
         if rising_edge(clk) then
             if rst = '0' then
             
-            elsif tick = '1' then
-                if mov = '1' then
-                    pos <= ( -- TODO: better math
-                        x => (unsigned(data_random(data_random'length-1 downto t_posy'length))) mod (bounds.br.x+1),
-                        y => (unsigned(data_random(t_posy'length-1 downto 0))) mod (bounds.br.y+1)
-                    );
-                end if;
+            elsif mov = '1' then
+                pos <= ( -- TODO: better math
+                    x => (unsigned(data_random(data_random'length-1 downto t_posy'length))) mod (bounds_delta.x+1) + bounds.tl.x,
+                    y => (unsigned(data_random(t_posy'length-1 downto 0))) mod (bounds_delta.y+1)  + bounds.tl.y
+                );
             end if;
         end if;
     end process;

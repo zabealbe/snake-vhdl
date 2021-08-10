@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.world_pkg.all;
 
-entity score_tiler is
+entity window_score is
     generic (
         size: integer;
         top_left: t_pos
@@ -15,9 +15,9 @@ entity score_tiler is
         tile : out t_tile;
         visible: out std_logic
     );
-end score_tiler;
+end window_score;
 
-architecture Behavioral of score_tiler is
+architecture Behavioral of window_score is
     constant bounds: t_box := (
         tl => top_left,
         br => top_left + to_pos(size-1, 1)
@@ -49,9 +49,7 @@ begin
             value => value
         );
     visible <= visible0;
-    pos_rel <=
-        pos - bounds.tl when visible0 = '1'
-        else zero_pos;
+    pos_rel <= pos - bounds.tl;
     index <= 
         to_integer(size - 1 - pos_rel.x) when visible0 = '1'
         else 0;

@@ -102,7 +102,7 @@ port(
     pxl_clk: in std_logic;
     tile: in t_tile;
     pos: out t_pos;
-    enable_write: out std_logic; -- TODO: remove
+    enable_write, enable_read: out std_logic; -- TODO: remove
     vga_hs, vga_vs: out std_logic;
     vga_r, vga_g, vga_b: out std_logic_vector(3 downto 0)
 );
@@ -181,10 +181,10 @@ begin
         h_count_ctr(t_tile_offx'high+scale-1 downto 0) = (t_tile_offy'high+scale-1 downto 0 => '1') and 
         v_count_ctr(t_tile_offy'high+scale-1 downto 0) = (t_tile_offy'high+scale-1 downto 0 => '1')
         else '0';
-    --enable_write <= '1' when 
-    --    h_count_ctr(t_tile_offx'high+scale-1 downto 0) = "00000" and 
-    --    v_count_ctr(t_tile_offy'high+scale-1 downto 0) = "00000"
-    --    else '0'; 
+    enable_read <= '1' when 
+        h_count_ctr(t_tile_offx'high+scale-1 downto 0) = (t_tile_offy'high+scale-1 downto 0 => '0') and 
+        v_count_ctr(t_tile_offy'high+scale-1 downto 0) = (t_tile_offy'high+scale-1 downto 0 => '0')
+        else '0'; 
         
     process (pxl_clk) is
     begin

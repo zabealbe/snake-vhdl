@@ -22,7 +22,9 @@ end snake;
 
 architecture Behavioral of snake is
     type t_body is array (0 to max_length-1) of t_pos;
-
+    
+    signal ate: std_logic := '0';
+    
     constant start_neck_pos: t_pos := move(start_pos,      -start_mot);
     constant start_tail_pos: t_pos := move(start_neck_pos, -start_mot);
     constant start_body: t_body := (0 => start_tail_pos, 1 => start_neck_pos, 2 => start_pos, others => zero_pos);
@@ -46,10 +48,10 @@ begin
         mot_r when dir = "0001" and head_mot /= mot_l else
         head_mot;
     head_tile <=
-        snake_head_bite_u when head_mot = mot_u and eat = '1' else
-        snake_head_bite_d when head_mot = mot_d and eat = '1' else
-        snake_head_bite_l when head_mot = mot_l and eat = '1' else
-        snake_head_bite_r when head_mot = mot_r and eat = '1' else
+        snake_head_bite_u when head_mot = mot_u and ate = '1' else
+        snake_head_bite_d when head_mot = mot_d and ate = '1' else
+        snake_head_bite_l when head_mot = mot_l and ate = '1' else
+        snake_head_bite_r when head_mot = mot_r and ate = '1' else
         snake_head_bonk_u when head_mot = mot_u and die = '1' else
         snake_head_bonk_d when head_mot = mot_d and die = '1' else
         snake_head_bonk_l when head_mot = mot_l and die = '1' else
@@ -66,7 +68,6 @@ begin
     process (clk, rst) is        
         -- Head
         variable pos: t_pos;
-        
         -- Neck
         
         
@@ -77,7 +78,9 @@ begin
         -- Tail
     begin
         if rising_edge(clk) then
-            if rst = '0' then         
+            if rst = '0' then
+                ate <= '0';
+             
                 -- Head
                 head_mot   <= start_mot;
                 head_pos0  <= start_pos;
@@ -93,11 +96,14 @@ begin
                 -- Tail
                 tail_mot   <= start_mot;
                 tail_pos0  <= start_tail_pos;
-            elsif tick = '1' then
-                -- CALCULATE NEW SNAKE STATE
-                head_mot <= head_mot_next;
+            else
+                if eat = '1' then
+                    ate <= '1';
+                end if;
                 if mov = '1' then
-                    -- Head --                   
+                    -- CALCULATE NEW SNAKE STATE
+                    -- Head --    
+                    head_mot <= head_mot_next;
                     head_pos0 <= move(head_pos0, head_mot_next);
                         
                     -- Neck --
@@ -129,21 +135,22 @@ begin
                         end if;
                     elsif head_mot = mot_l then                 -- neck is on the left   of body
                         if head_mot_next = mot_d then           -- head is on the bottom of neck
-                            neck_tile <= snake_body_ur;
-                        else                                    -- head is on the bottom of neck
                             neck_tile <= snake_body_dr;
+                        else                                    -- head is on the bottom of neck
+                            neck_tile <= snake_body_ur;
                         end if;
                     else                                        -- unexpected
                         neck_tile <= crate;
                     end if;
                     
                     -- Body --
-                    if eat = '0' then -- TODO: check FIFO not empty
-                        snake_body := snake_body(1 to max_length-1) & zero_pos;
-                    else
+                    if ate = '1' then
                         snake_size := snake_size + 1;
-                    end if;
-                    snake_body(snake_size) := head_pos0;
+                        ate <= '0';
+                    else
+                        snake_body := snake_body(1 to t_body'high) & zero_pos;
+                    end if;                    
+                    snake_body(snake_size-1) := move(head_pos0, head_mot_next);
                     
                     -- Tail --
                     tail_pos0 <= snake_body(0);

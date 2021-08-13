@@ -95,7 +95,7 @@ use work.world_pkg.all;
 
 entity vga_renderer is
 generic (
-    window: t_window := window_1920x1080;
+    window: t_window := window_1280x1024;
     scale: integer   := 1                 -- exponential, 1 pixel is stetched to 2^(scale - 1) pixels
 );
 port( 

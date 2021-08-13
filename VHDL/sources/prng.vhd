@@ -32,22 +32,24 @@ begin
     w_XNOR <= r_LFSR(30) xnor r_LFSR(6) xnor r_LFSR(4) xnor r_LFSR(1); -- XNOR function
     seq: process (clk, rst) is
     begin
-        if rst = '0' then -- reset asyncronous
-            state <= b;
-            seed <= 0;
-        elsif rising_edge(clk) then
-            case state is
-                when b =>
-                    seed <= seed + 1;
-                    if init = '1' then
-                        state <= c;
-                        r_LFSR <= std_logic_vector(to_unsigned(seed, num));
-                    end if;
-                when c =>
-                    if enable = '1' then
-                        r_LFSR <= r_LFSR(num-1 downto 1) & w_XNOR;
-                    end if;
-            end case;
+        if rising_edge(clk) then
+            if rst = '0' then -- reset asyncronous
+                state <= b;
+                seed <= 0;
+            else
+                case state is
+                    when b =>
+                        seed <= seed + 1;
+                        if init = '1' then
+                            state <= c;
+                            r_LFSR <= std_logic_vector(to_unsigned(seed, num));
+                        end if;
+                    when c =>
+                        if enable = '1' then
+                            r_LFSR <= r_LFSR(num-1 downto 1) & w_XNOR;
+                        end if;
+                end case;
+            end if;
         end if;
     end process;
 end architecture;

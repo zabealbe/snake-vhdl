@@ -32,7 +32,8 @@ architecture Behavioral of eden is
     -- World
     constant world_bounds: t_box := (
         tl => to_pos(3,  4),
-        br => to_pos(56, 31)
+        br => to_pos(20, 20)
+        --br => to_pos(56, 31)
     );
     signal get_pos, set_pos: t_pos;
     signal wr_en: std_logic := '0';
@@ -274,7 +275,11 @@ begin
                 end case;
                 
                 if enable_write = '1' then         -- Update world
-                    set_pos <= curr_pos;             -- set curr pos as write position for world                   
+                    set_pos <= curr_pos;             -- set curr pos as write position for world 
+                    if curr_pos = head_pos then      -- Check if head moved to curr pos
+                        wr_en <= '1';                -- update world tile
+                        set_tile_world <= head_tile;
+                    end if;
                     if curr_pos = neck_pos then      -- Check if neck moved to curr pos
                         wr_en <= '1';                  -- update world tile
                         set_tile_world <= neck_tile;
@@ -293,11 +298,6 @@ begin
                     if curr_pos = apple_pos then     -- Check if apple moved to curr pos
                         wr_en <= '1';                  -- update world tile
                         set_tile_world <= apple;
-                    end if;
-                    
-                    if curr_pos = head_pos then      -- Check if head moved to curr pos
-                        wr_en <= '1';                -- update world tile
-                        set_tile_world <= head_tile;
                     end if;
                 end if;
             end if;

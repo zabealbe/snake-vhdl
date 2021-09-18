@@ -107,6 +107,7 @@ package world_pkg is
     function to_pos(x, y: integer) return t_pos;               -- Position constructor
     function "+" (L, R: t_pos) return t_pos;                -- Position vector algebra
     function "-" (L, R: t_pos) return t_pos;
+    function "/" (L: t_pos; R: integer) return t_pos;
 
     -- 2D direction represented as a versor centered around the origin
     type t_mot is record
@@ -169,6 +170,11 @@ package body world_pkg is
     function "-" (mot: t_mot) return t_mot is
     begin
         return (x => -mot.x, y => -mot.y);
+    end function;
+    
+    function "/" (L: t_pos; R: integer) return t_pos is
+    begin
+        return (x => L.x / R, y => L.y / R);
     end function;
     
     function direction(pos: t_pos) return t_mot is

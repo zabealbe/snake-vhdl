@@ -2,6 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.world_pkg.all;
+use work.graphics_pkg.all;
+use work.vga.all;
 
 entity eden is
     port(
@@ -29,11 +31,17 @@ architecture Behavioral of eden is
     signal background_visible: std_logic;
     signal btnc0: std_logic;
     
+    constant vga_window: t_window := window_1280x1024;
+    constant vga_scale: integer := 3;
+    constant window_center: t_pos := to_pos(
+        vga_window.h_visible_area/to_integer(max_tile_offx * (2 ** (vga_scale - 1)))/2,
+        vga_window.v_visible_area/to_integer(max_tile_offy * (2 ** (vga_scale - 1)))/2
+    );
+    
     -- World
     constant world_bounds: t_box := (
-        tl => to_pos(3,  4),
-        br => to_pos(20, 20)
-        --br => to_pos(56, 31)
+        tl => window_center - to_pos(18, 14),
+        br => window_center + to_pos(13, 10)
     );
     signal get_pos, set_pos: t_pos;
     signal wr_en: std_logic := '0';
@@ -49,10 +57,9 @@ architecture Behavioral of eden is
     
     -- End
     constant end_bounds: t_box := (
-        tl => to_pos(17, 10),
-        br => to_pos(42, 25)
+        tl => window_center - to_pos(12, 7),
+        br => window_center + to_pos(6, 3)
     );
-    constant end_top_left: t_pos := world_bounds.tl - to_pos(0, 3);
     signal get_tile_end: t_tile;
     signal end_visible: std_logic;
 
@@ -61,7 +68,7 @@ architecture Behavioral of eden is
     signal apple_move: std_logic;
     
     -- Snake
-    constant start_pos: t_pos      := world_bounds.tl + to_pos(2, 0);
+    constant start_pos: t_pos := world_bounds.tl + to_pos(2, 0);
     signal snake_eat, snake_die, snake_move: std_logic;
     signal tick: std_logic;
     signal head_pos, neck_pos, tail_pos, last_tail_pos: t_pos;
@@ -190,7 +197,8 @@ begin
         
     e_vga_renderer : entity work.vga_renderer(Behavioral) 
         generic map (
-            scale => 3
+            scale => vga_scale,
+            window => vga_window
         )
         port map (
             pxl_clk => pxl_clk,

@@ -1,91 +1,4 @@
 library ieee;
-use IEEE.std_logic_1164.all;
-use ieee.numeric_std.all;
-use work.world_pkg.all;
-
-package vga is
-    type t_window is record
-        pxl_clk   : real;
-        
-        h_polarity: std_logic;
-        -- values are in pixels
-        h_visible_area: integer;
-        h_front_porch: integer;
-        h_sync_pulse: integer;
-        h_back_porch: integer;
-        h_total: integer;
-        
-        v_polarity: std_logic;
-        -- values are in pixels
-        v_visible_area: integer;
-        v_front_porch: integer;
-        v_sync_pulse: integer;
-        v_back_porch: integer;
-        v_total: integer;
-    end record;
-    
-    constant window_640x480: t_window := (
-        pxl_clk        => 25.175,
-    
-        h_polarity     => '0',
-        
-        h_visible_area => 640,
-        h_front_porch  => 16,
-        h_sync_pulse   => 96,
-        h_back_porch   => 48,
-        h_total        => 800,
-        
-        v_polarity     => '0',
-        
-        v_visible_area => 480,
-        v_front_porch  => 10,
-        v_sync_pulse   => 2,
-        v_back_porch   => 33,
-        v_total        => 525
-    );
-
-    constant window_1280x1024: t_window := (
-        pxl_clk        => 108.0,
-
-        h_polarity     => '1',
-    
-        h_visible_area => 1280,
-        h_front_porch  => 48,
-        h_sync_pulse   => 112,
-        h_back_porch   => 248,
-        h_total        => 1688,
-        
-        v_polarity     => '1',
-
-        v_visible_area => 1024,
-        v_front_porch  => 1,
-        v_sync_pulse   => 3,
-        v_back_porch   => 38,
-        v_total        => 1066
-    );
-    
-    constant window_1920x1080: t_window := (
-        pxl_clk        => 148.5,
-
-        h_polarity     => '1',
-    
-        h_visible_area => 1920,
-        h_front_porch  => 88,
-        h_sync_pulse   => 44,
-        h_back_porch   => 148,
-        h_total        => 2200,
-        
-        v_polarity     => '1',
-
-        v_visible_area => 1080,
-        v_front_porch  => 4,
-        v_sync_pulse   => 5,
-        v_back_porch   => 36,
-        v_total        => 1125
-    );
-end package;
-
-library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
@@ -95,8 +8,8 @@ use work.world_pkg.all;
 
 entity vga_renderer is
 generic (
-    window: t_window := window_1280x1024;
-    scale: integer   := 1                 -- exponential, 1 pixel is stetched to 2^(scale - 1) pixels
+    window: t_window;
+    scale: integer   := 1                 -- exponential, 1 pixel is stretched to 2^(scale - 1) pixels
 );
 port( 
     pxl_clk: in std_logic;

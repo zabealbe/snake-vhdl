@@ -23,7 +23,7 @@ architecture Behavioral of window_end is
             y => (bounds.tl.y + bounds.br.y - 2) / 2
         ),
         br => (
-            x => (bounds.tl.x + bounds.br.x - t_static'length) / 2 + 10,
+            x => (bounds.tl.x + bounds.br.x - t_static'length) / 2 + 9,
             y => (bounds.tl.y + bounds.br.y - 2) / 2 + 4
         )
     );

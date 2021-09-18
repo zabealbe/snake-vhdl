@@ -8,14 +8,14 @@ entity window is
         bounds: t_box
     );
     port (
-        pos: in t_pos;
-        enable_display: out std_logic
+        pos: in t_pos;      -- Absolute position
+        visible: out std_logic
     );
 end window;
 
 architecture Behavioral of window is
 begin
-    enable_display <= 
+    visible <= 
         '1' when
             pos.x >= bounds.tl.x and pos.y >= bounds.tl.y and  -- Check if pos is after  top    left  corner
             pos.x <= bounds.br.x and pos.y <= bounds.br.y      -- Check if pos is before bottom right corner

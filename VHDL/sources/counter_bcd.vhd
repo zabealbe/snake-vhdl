@@ -15,9 +15,9 @@ entity counter_bcd is
 end counter_bcd;
 
 architecture Behavioral of counter_bcd is
-    type arr is array (0 to size-1) of natural;
+    type t_values is array (0 to size-1) of natural;
+    signal values: t_values;
     signal tc: std_logic_vector(size downto 0);
-    signal values: arr;
 begin
     tc(0) <= enable;
     value <= values(index);

@@ -1,43 +1,13 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 05/01/2016 04:57:31 PM
--- Design Name: 
--- Module Name: seven_segment_driver - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity seven_segment_driver is
-  generic (
-    size : integer := 20
-  );
   Port (
     clk : in std_logic;
     rst : in std_logic;
-    digit0 : in std_logic_vector( 3 downto 0 );
-    digit1 : in std_logic_vector( 3 downto 0 );
-    digit2 : in std_logic_vector( 3 downto 0 );
-    digit3 : in std_logic_vector( 3 downto 0 );
-    digit4 : in std_logic_vector( 3 downto 0 );
-    digit5 : in std_logic_vector( 3 downto 0 );
-    digit6 : in std_logic_vector( 3 downto 0 );
-    digit7 : in std_logic_vector( 3 downto 0 );
+    index: out natural;
+    value: in natural;
     CA, CB, CC, CD, CE, CF, CG, DP : out std_logic;
     AN : out std_logic_vector( 7 downto 0 )
   );
@@ -45,17 +15,12 @@ entity seven_segment_driver is
 end seven_segment_driver;
 
 architecture Behavioral of seven_segment_driver is
-
-  -- We will use a counter to derive the frequency for the displays
-  -- Clock is 100 MHz, we use 3 bits to address the display, so we count every
-  -- size - 3 bits. To get ~100 Hz per digit, we need 20 bits, so that we divide
-  -- by 2^20.
-  signal flick_counter : unsigned( size - 1 downto 0 );
-  -- The digit is temporarily stored here
-  signal digit : std_logic_vector( 3 downto 0 );
-  -- Collect the values of the cathodes here
-  signal cathodes : std_logic_vector( 7 downto 0 );
-
+    constant size: natural := 20;
+    signal flick_counter : unsigned( size - 1 downto 0 );
+    -- The digit is temporarily stored here
+    signal digit : std_logic_vector( 3 downto 0 );
+    -- Collect the values of the cathodes here
+    signal cathodes : std_logic_vector( 7 downto 0 );
 begin
 
   -- Divide the clock
@@ -63,11 +28,12 @@ begin
     if rst = '0' then -- active low
       flick_counter <= ( others => '0' );
     elsif rising_edge(clk) then
-      flick_counter <= flick_counter + 1;
+        flick_counter <= flick_counter + 1;
     end if;
   end process;
 
   -- Select the anode
+  index <= to_integer(flick_counter( size - 1 downto size - 3 ));
   with flick_counter( size - 1 downto size - 3 ) select
     AN <=
       "11111110" when "000",
@@ -80,37 +46,28 @@ begin
       "01111111" when others;
 
   -- Select the digit
-  with flick_counter( size - 1 downto size - 3 ) select
-    digit <=
-      digit0 when "000",
-      digit1 when "001",
-      digit2 when "010",
-      digit3 when "011",
-      digit4 when "100",
-      digit5 when "101",
-      digit6 when "110",
-      digit7 when others;
-
+    
   -- Decode the digit
-  with digit select
+  with value select
     cathodes <=
       -- DP, CG, CF, CE, CD, CC, CB, CA
-      "11000000" when "0000",
-      "11111001" when "0001",
-      "10100100" when "0010",
-      "10110000" when "0011",
-      "10011001" when "0100",
-      "10010010" when "0101",
-      "10000010" when "0110",
-      "11111000" when "0111",
-      "10000000" when "1000",
-      "10010000" when "1001",
-      "10001000" when "1010",
-      "10000011" when "1011",
-      "11000110" when "1100",
-      "10100001" when "1101",
-      "10000110" when "1110",
-      "10001110" when others;
+      "11000000" when 0,
+      "11111001" when 1,
+      "10100100" when 2,
+      "10110000" when 3,
+      "10011001" when 4,
+      "10010010" when 5,
+      "10000010" when 6,
+      "11111000" when 7,
+      "10000000" when 8,
+      "10010000" when 9,
+      "10001000" when 10,     -- A
+      "10000011" when 11,     -- B
+      "11000110" when 12,     -- C
+      "10100001" when 13,     -- D
+      "10000110" when 14,     -- E
+      "10001110" when 15,     -- F
+      "10111111" when others; -- unexpected
 
   DP <= cathodes( 7 );
   CG <= cathodes( 6 );

@@ -1,7 +1,6 @@
 # snake-vhdl
 
 VHDL implementation of the famous game "snake" for FPGA
-![image text](docs/img/snake.jpg "schema3")
 <img src=docs/img/snake.jpg width="640" height="512" hspace="150">
 
 ## Introduzione

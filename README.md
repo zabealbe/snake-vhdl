@@ -2,12 +2,11 @@
 
 VHDL implementation of the famous game "snake" for FPGA
 ![image text](docs/img/snake.jpg "schema3")
+<img src=docs/img/snake.jpg width="640" height="512" hspace="150">
 
 ## Introduzione
 
 ### Idea di progetto
-
-<div style="text-align: justify">
 
 In seguito ad un'analisi di possibili progetti realizzabili con FPGA la nostra scelta è ricaduta su un videogioco storico presente anche nei primi cellulari, Snake.
 
@@ -142,4 +141,3 @@ Nonostante la presenza di qualche spigolo su cui avremmo voluto lavorare ulterio
 Durante la realizzazione del progetto sono emerse diverse problematiche che non solo ci hanno permesso di acquisire una discreta conoscenza del linguaggio VHDL ma anche di migliorare la nostra capacità di analisi e risoluzione di problemi complessi.
 Il risultato finale per noi è un ottimo esempio di cosa sia possibile realizzare con linguaggio VHDL e l’FPGA.
 
-</div>

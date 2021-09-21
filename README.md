@@ -10,7 +10,7 @@ Le origini di Snake risalgono agli anni settanta, da allora è stato prodotto in
 
 In snake il campo da gioco è spesso una matrice discreta di blocchi (tile) che nel caso più semplice essi possono assumere 3 stati: vuoto, mela o serpente. Supponendo che il campo di gioco sia rappresentato da una matrice 4x4, di seguito ve ne è la rappresentazione in 3 istanti consecutivi:
 
-![image text](schema.jpg "schema")
+![image text](docs/img/schema.jpg "schema")
 
 come si nota l’atto di mangiare una mela comporta l’aggiunta di un tile serpente in testa, mentre l’atto di muoversi comporta l’aggiunta in testa e la rimozione in coda, questo modello semplificato della logica di gioco sarà alla base del nostro progetto.
 

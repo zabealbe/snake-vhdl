@@ -21,7 +21,7 @@ L’interfaccia utente è formata da due macro componenti: i comandi di input e 
 Per il controllo del serpente da parte del giocatore abbiamo optato per utilizzare i quattro pulsanti integrati sulla board, i pad direzionali riflettono la direzione che seguirà il serpente nel prossimo frame, mentre il pulsante centrale permette di far cominciare una nuova partita e di riavviare il gioco in caso di game over.
 
 ![image text](docs/img/buttons.jpg "buttons")
-
+![](docs/img/buttons.jpg | width=100)
 ### Monitor VGA
 La nostra scelta per la GUI ricade sulla porta VGA presente nella Nexys 4 DDR, il nostro codice è predisposto per supportare diverse risoluzioni tramite l’uso delle generics, la risoluzione più alta ufficialmente supportata è di 1280x1024 a 60fps, dandoci un pixel clock di 148.5 MHz ricavato dal clock base di 100.0 MHz tramite l’IP clock wizard di Xilinx.
 

@@ -9,7 +9,7 @@ In seguito ad un'analisi di possibili progetti realizzabili con FPGA la nostra s
 Le origini di Snake risalgono agli anni settanta, da allora è stato prodotto in numerose piattaforme e varianti, fino a ritrovare nuova fama negli anni novanta grazie ai cellulari, il nostro obiettivo con questo progetto è quello di riprodurlo tramite il linguaggio VHDL rendendolo completo di interfaccia grafica. 
 
 In snake il campo da gioco è spesso una matrice discreta di blocchi (tile) che nel caso più semplice essi possono assumere 3 stati: vuoto, mela o serpente. Supponendo che il campo di gioco sia rappresentato da una matrice 4x4, di seguito ve ne è la rappresentazione in 3 istanti consecutivi:
-<img src=docs/img/schema.jpg width="550" height="150" hspace="200">
+<img src=docs/img/schema.jpg width="550" height="170" hspace="200">
 
 
 

@@ -9,8 +9,9 @@ In seguito ad un'analisi di possibili progetti realizzabili con FPGA la nostra s
 Le origini di Snake risalgono agli anni settanta, da allora è stato prodotto in numerose piattaforme e varianti, fino a ritrovare nuova fama negli anni novanta grazie ai cellulari, il nostro obiettivo con questo progetto è quello di riprodurlo tramite il linguaggio VHDL rendendolo completo di interfaccia grafica. 
 
 In snake il campo da gioco è spesso una matrice discreta di blocchi (tile) che nel caso più semplice essi possono assumere 3 stati: vuoto, mela o serpente. Supponendo che il campo di gioco sia rappresentato da una matrice 4x4, di seguito ve ne è la rappresentazione in 3 istanti consecutivi:
+<img src=docs/img/schema.jpg width="400" height="150" hspace="150">
 
-![image text](docs/img/schema.jpg "schema")
+
 
 come si nota l’atto di mangiare una mela comporta l’aggiunta di un tile serpente in testa, mentre l’atto di muoversi comporta l’aggiunta in testa e la rimozione in coda, questo modello semplificato della logica di gioco sarà alla base del nostro progetto.
 
@@ -51,10 +52,8 @@ Questo schema, semplificato per motivi di chiarezza, dà un’idea su quale sia 
 ## Strumenti utilizzati
 ### Strumenti Hardware
 Board Nexys4 DDR
-![image text](docs/img/NexysA7.jpg "Nexys")
-
 Monitor VGA
-![image text](docs/img/monitorVGA.jpg "monitor")
+  
 ### Strumenti Software e Linguaggi
 Vivado
 GHDL e GTKWAVE

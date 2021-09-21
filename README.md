@@ -72,7 +72,6 @@ Questo schema, semplificato per motivi di chiarezza, dà un’idea su quale sia 
 
 Board Nexys4 DDR
 Monitor VGA
-![image text](docs/img/monitorVGA.jpg "monitor")
 
 ### Strumenti Software e Linguaggi
 

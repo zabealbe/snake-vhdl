@@ -88,7 +88,7 @@ Il linguaggio VHDL non mette a disposizione strumenti per la generazione di nume
 
 Il seed del generatore viene inizializzato a 0 e ad ogni ciclo di clock viene incrementato di uno. Quando viene premuto il bottone di start del gioco, il valore del seed in quel momento diventa il valore definitivo del seed.
 Ogni volta che viene richiesto un numero al generatore lo shift register mette in ingresso un nuovo bit determinato da una funzione di XNOR (funzione di retroazione). Il numero generato sarà quello contenuto nell’intero registro, e poi troncato a seconda del range richiesto. 
-Poiché il registro ha un numero finito di stati, prima o poi i valori in uscita si ripetono, perciò bisogna scegliere una funzione di retroazione che abbia un periodo molto lungo. Xilinx mette a disposizione delle tabelle con le funzioni XOR e XNOR più efficienti (LFSR taps).
+Poiché il registro ha un numero finito di stati, prima o poi i valori in uscita si ripetono, perciò bisogna scegliere una funzione di retroazione che abbia un periodo molto lungo. Xilinx mette a disposizione delle tabelle con le funzioni XOR e XNOR più efficienti (https://www.xilinx.com/support/documentation/application_notes/xapp052.pdf).
 
 ### [apple.vhd]
 Tramite l’utilizzo di prng si occupa di tenere traccia e aggiornare la posizione della mela, infatti nel momento in cui essa viene mangiata vi è un semplice spostamento della stessa in una posizione che è funzione del prng, simulando così la creazione di una nuova.

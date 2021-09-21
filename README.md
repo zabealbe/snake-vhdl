@@ -40,7 +40,7 @@ La grafica di gioco è suddivisa in celle di 32x32 pixel configurabile tramite g
 
 Ogni cella internamente è identificata da un numero che corrisponde ad un blocco di 8x8 pixel. Questi blocchi sono salvati in ROM e vengono letti durante la fase di rendering dove subiscono l’upscaling richiesto. Le ROM sono generate da uno script scritto in Python, che leggendo da un file PNG il valore del singolo pixel esegue la conversione al formato 12 bit per pixel (vedi Palette) creando un file sorgente VHDL contenente tutti i dati richiesti sotto forma di matrice che verrà sintetizzata come una cascata di multiplexers.
 
-<img src=docs/img/rompipeline.png hspace="200">
+<img src=docs/img/rompipeline.png hspace="250">
 
 ![](docs/img/tileset.png)
 

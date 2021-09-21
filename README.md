@@ -22,6 +22,8 @@ Per il controllo del serpente da parte del giocatore abbiamo optato per utilizza
 
 ![image text](docs/img/buttons.jpg "buttons")
 ![image text](docs/img/buttons.jpg | width=100)
+  <img src=docs/img/buttons.jpg width="50" height="50" />
+
 ### Monitor VGA
 La nostra scelta per la GUI ricade sulla porta VGA presente nella Nexys 4 DDR, il nostro codice è predisposto per supportare diverse risoluzioni tramite l’uso delle generics, la risoluzione più alta ufficialmente supportata è di 1280x1024 a 60fps, dandoci un pixel clock di 148.5 MHz ricavato dal clock base di 100.0 MHz tramite l’IP clock wizard di Xilinx.
 

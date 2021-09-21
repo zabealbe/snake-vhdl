@@ -20,7 +20,7 @@ L’interfaccia utente è formata da due macro componenti: i comandi di input e 
 ### Pulsanti
 Per il controllo del serpente da parte del giocatore abbiamo optato per utilizzare i quattro pulsanti integrati sulla board, i pad direzionali riflettono la direzione che seguirà il serpente nel prossimo frame, mentre il pulsante centrale permette di far cominciare una nuova partita e di riavviare il gioco in caso di game over.
 
-![image text](buttons.jpg "buttons")
+![image text](docs/img/buttons.jpg "buttons")
 
 ### Monitor VGA
 La nostra scelta per la GUI ricade sulla porta VGA presente nella Nexys 4 DDR, il nostro codice è predisposto per supportare diverse risoluzioni tramite l’uso delle generics, la risoluzione più alta ufficialmente supportata è di 1280x1024 a 60fps, dandoci un pixel clock di 148.5 MHz ricavato dal clock base di 100.0 MHz tramite l’IP clock wizard di Xilinx.
@@ -45,16 +45,16 @@ Il progetto è stato sviluppato per lo più da un team in remoto. Non avendo pos
 Questa soluzione si è rivelata estremamente utile per ridurre i tempi di debug per le problematiche legate alla logica di rendering ed è stata anche condivisa con altri team per i loro progetti.
 
 ### Schema presentazione strutturale
-![image text](schema1.jpg "schema1")
+![image text](docs/img/schema1.jpg "schema1")
 Questo schema, semplificato per motivi di chiarezza, dà un’idea su quale sia la struttura del progetto, lo scheletro si compone principalmente di snake, eden e vga_renderer, dove snake fornisce in ogni momento la posizione della testa e della coda del serpente, eden gestisce la logica di gioco memorizzando tramite world lo stato corrente della matrice di gioco, e vga_renderer che permette l’upscaling e il rendering di sprite di dimensione 8x8.
 
 ## Strumenti utilizzati
 ### Strumenti Hardware
 Board Nexys4 DDR
-![image text](NexysA7.jpg "Nexys")
+![image text](docs/img/NexysA7.jpg "Nexys")
 
 Monitor VGA
-![image text](monitorVGA.jpg "monitor")
+![image text](docs/img/monitorVGA.jpg "monitor")
 ### Strumenti Software e Linguaggi
 Vivado
 GHDL e GTKWAVE
@@ -78,14 +78,14 @@ game_play_move: aggiornamento dello stato di gioco, il serpente si muove.
 game_play_score: la testa del serpente ha toccato la mela, viene aggiunto +1 allo score.
 game_end: la testa del serpente ha toccato se stesso o il bordo del campo di gioco.
 
-![image text](schema2.jpg "schema2")
+![image text](docs/img/schema2.jpg "schema2")
 ### [snake.vhd]
 L’entity snake ha il compito di aggiornare lo stato del serpente, più nello specifico aggiorna la posizione della testa, collo e coda e delle loro sprite.
 Tralasciando il collo, di cui ne viene tenuta traccia solo per motivi grafici, i due componenti essenziali sono la testa e la coda, infatti tramite essi è possibile simulare il movimento di una colonna di blocchi semplicemente aggiungendone uno davanti (la testa) e togliendo l’ultimo (la coda). Si deve sempre considerare il caso particolare nel quale il serpente si allunga dopo aver mangiato una mela, la coda infatti rimarrà ferma per un tick permettendo al serpente di crescere.
 ### [prng.vhd]
 Il linguaggio VHDL non mette a disposizione strumenti per la generazione di numeri random o pseudo-random se non durante la simulazione. Abbiamo dunque deciso di implementare un generatore di numeri pseudo-random con un LSFR (Linear Feedback Shift Register).
 
-![image text](schema3.jpg "schema3")
+![image text](docs/img/schema3.jpg "schema3")
 
 Il seed del generatore viene inizializzato a 0 e ad ogni ciclo di clock viene incrementato di uno. Quando viene premuto il bottone di start del gioco, il valore del seed in quel momento diventa il valore definitivo del seed.
 Ogni volta che viene richiesto un numero al generatore lo shift register mette in ingresso un nuovo bit determinato da una funzione di XNOR (funzione di retroazione). Il numero generato sarà quello contenuto nell’intero registro, e poi troncato a seconda del range richiesto. 
@@ -108,4 +108,4 @@ Nonostante la presenza di qualche spigolo su cui avremmo voluto lavorare ulterio
 Durante la realizzazione del progetto sono emerse diverse problematiche che non solo ci hanno permesso di acquisire una discreta conoscenza del linguaggio VHDL ma anche di migliorare la nostra capacità di analisi e risoluzione di problemi complessi.
 Il risultato finale per noi è un ottimo esempio di cosa sia possibile realizzare con linguaggio VHDL e l’FPGA.
 
- </div>
+</div>

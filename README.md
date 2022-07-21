@@ -71,18 +71,16 @@ Questo schema, semplificato per motivi di chiarezza, dà un’idea su quale sia 
 
 ### Strumenti Hardware
 
-Board Nexys4 DDR
-Monitor VGA
-![image text](docs/img/monitorVGA.jpg "monitor")
+- Board Nexys4 DDR
+- Monitor VGA
 
 ### Strumenti Software e Linguaggi
 
-Vivado
-GHDL e GTKWAVE
-Visual Studio Code
-Software di grafica aseprite
-Scripting con Python
-Simulatore VGA con Rust
+- Vivado
+- GHDL e GTKWAVE
+- VS Code
+- Aseprite
+- Emulatore VGA custom in Rust
 
 # VHDL
 
